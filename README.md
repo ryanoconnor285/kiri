@@ -121,6 +121,37 @@ Build/start are configured in [`railway.toml`](railway.toml) and [`railpack.json
 - **Build:** `pnpm --filter @kiri/schema build && pnpm --filter @kiri/db build && pnpm --filter @kiri/api build`
 - **Start:** `node apps/api/dist/index.js`
 
+### Web app (second service, same project)
+
+The web app runs as a **separate service** in the same Railway project. Railway's
+Config-as-Code is deprecated (services created after 2026-08-28 cannot opt in), so
+configure the web service through its **Settings** (Build/Deploy) fields — not a
+config file:
+
+1. In the project: **New → GitHub Repo → this repo** (creates a second service).
+2. **Settings → Root Directory:** leave empty (build from the monorepo root).
+3. **Settings → Build → Custom Build Command:**
+   `pnpm --filter @kiri/schema build && pnpm --filter @kiri/web build`
+4. **Settings → Deploy → Custom Start Command:**
+   `pnpm --filter @kiri/web start` (`next start` binds to Railway's `$PORT`)
+5. **Settings → Networking → Generate Domain** for both the web service and the API
+   service (the API needs a public domain too).
+
+Environment variables:
+
+| Service | Variable | Value |
+|---------|----------|-------|
+| web | `NEXT_PUBLIC_API_URL` | `https://<api-domain>` (baked in at build time) |
+| api | `BETTER_AUTH_URL` | `https://<api-domain>` |
+| api | `WEB_ORIGIN` | `https://<web-domain>` (CORS origin) |
+| api | `BETTER_AUTH_SECRET` | random secret (`openssl rand -base64 32`) |
+| api | `NODE_ENV` | `production` |
+
+Set the API's domain first so `NEXT_PUBLIC_API_URL` / `BETTER_AUTH_URL` are known
+before the first web build. The web and API live on different `*.up.railway.app`
+domains (cross-site), so the API issues session cookies as `SameSite=None; Secure`
+in production (see `apps/api/src/auth.ts`).
+
 ## GraphQL API
 
 Key operations:
