@@ -1,0 +1,16 @@
+{
+  "name": "Kiri",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "cd /workspace && set -a && . ./.env && set +a && pnpm exec turbo dev --env-mode=loose",
+      "description": "Runs the API (GraphQL/auth on :4000) and Next.js web app (:3000) with hot reload."
+    }
+  ],
+  "ports": [
+    { "name": "web", "port": 3000 },
+    { "name": "api", "port": 4000 }
+  ]
+}
