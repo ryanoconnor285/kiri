@@ -114,7 +114,12 @@ Railway must build from the **monorepo root** (leave Root Directory empty in ser
 2. Create a Railway project and add a **PostgreSQL** plugin
 3. Deploy the API service from this repo root
 4. Set environment variables from `.env.example` (link `DATABASE_URL` from Postgres)
-5. Run migrations after first deploy: `railway run pnpm db:migrate`
+5. **Database migrations run automatically** via the API service's **Pre-Deploy
+   Command** (Settings → Deploy): `pnpm --filter @kiri/db migrate`. This runs
+   before each new version goes live and is idempotent — `drizzle-kit migrate`
+   tracks applied migrations in a `__drizzle_migrations` table and only applies
+   new ones. (The migration journal in `packages/db/drizzle/meta/` is committed
+   so this is reproducible.)
 
 Build/start are configured in [`railway.toml`](railway.toml) and [`railpack.json`](railpack.json):
 
