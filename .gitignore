@@ -34,4 +34,5 @@ apps/ios/build/
 npm-debug.log*
 
 # Drizzle
-packages/db/drizzle/meta/
+# NOTE: drizzle/meta (the migration journal) is intentionally committed so
+# `drizzle-kit migrate` is reproducible in CI/production (e.g. Railway pre-deploy).
