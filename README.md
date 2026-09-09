@@ -123,19 +123,23 @@ Build/start are configured in [`railway.toml`](railway.toml) and [`railpack.json
 
 ### Web app (second service, same project)
 
-The web app runs as a **separate service** in the same Railway project. Railway's
-Config-as-Code is deprecated (services created after 2026-08-28 cannot opt in), so
-configure the web service through its **Settings** (Build/Deploy) fields — not a
-config file:
+The web app runs as a **separate service** in the same Railway project. The repo
+root `railpack.json` is **API-only** and is inherited by every Railpack service in
+the repo, so a Railpack-built web service would build the API instead of the web
+app (no `.next` → `next start` crashes). The web service therefore builds from
+[`apps/web/Dockerfile`](apps/web/Dockerfile), which bypasses `railpack.json`
+entirely:
 
 1. In the project: **New → GitHub Repo → this repo** (creates a second service).
-2. **Settings → Root Directory:** leave empty (build from the monorepo root).
-3. **Settings → Build → Custom Build Command:**
-   `pnpm --filter @kiri/schema build && pnpm --filter @kiri/web build`
-4. **Settings → Deploy → Custom Start Command:**
-   `pnpm --filter @kiri/web start` (`next start` binds to Railway's `$PORT`)
-5. **Settings → Networking → Generate Domain** for both the web service and the API
+2. **Settings → Build → Builder:** Dockerfile, **Dockerfile Path:** `apps/web/Dockerfile`.
+3. **Settings → Root Directory:** leave empty (the Docker build context is the
+   monorepo root).
+4. **Settings → Networking → Generate Domain** for both the web service and the API
    service (the API needs a public domain too).
+
+`next start` binds to Railway's `$PORT` automatically. `NEXT_PUBLIC_API_URL` is a
+build-time variable — the Dockerfile reads it as a build arg (Railway passes
+service variables to Docker builds), so set it before the first deploy.
 
 Environment variables:
 
