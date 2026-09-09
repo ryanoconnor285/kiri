@@ -42,7 +42,7 @@ async function seed() {
       .values({
         email: DEMO_EMAIL,
         name: "Demo User",
-        emailVerified: new Date(),
+        emailVerified: true,
       })
       .returning();
     console.log(`Created demo user: ${DEMO_EMAIL}`);

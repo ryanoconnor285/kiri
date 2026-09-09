@@ -24,6 +24,11 @@ export function createAuth({ db, baseUrl, secret, trustedOrigins }: AuthOptions)
     baseURL: baseUrl,
     secret,
     trustedOrigins,
+    advanced: {
+      database: {
+        generateId: "uuid",
+      },
+    },
     emailAndPassword: {
       enabled: true,
     },
