@@ -146,15 +146,16 @@ Environment variables:
 | Service | Variable | Value |
 |---------|----------|-------|
 | web | `NEXT_PUBLIC_API_URL` | `https://<api-domain>` (baked in at build time) |
-| api | `BETTER_AUTH_URL` | `https://<api-domain>` |
-| api | `WEB_ORIGIN` | `https://<web-domain>` (CORS origin) |
+| api | `API_URL` | `https://<api-domain>` (the API's own public URL) |
+| api | `WEB_URL` | `https://<web-domain>` (web app origin, used for CORS) |
 | api | `BETTER_AUTH_SECRET` | random secret (`openssl rand -base64 32`) |
 | api | `NODE_ENV` | `production` |
 
-Set the API's domain first so `NEXT_PUBLIC_API_URL` / `BETTER_AUTH_URL` are known
-before the first web build. The web and API live on different `*.up.railway.app`
-domains (cross-site), so the API issues session cookies as `SameSite=None; Secure`
-in production (see `apps/api/src/auth.ts`).
+`API_URL` and the web's `NEXT_PUBLIC_API_URL` are the **same** value (the API's
+domain); `WEB_URL` is the **web app's** domain. Set the API's domain first so
+`NEXT_PUBLIC_API_URL` / `API_URL` are known before the first web build. The web and
+API live on different `*.up.railway.app` domains (cross-site), so the API issues
+session cookies as `SameSite=None; Secure` in production (see `apps/api/src/auth.ts`).
 
 ## GraphQL API
 
