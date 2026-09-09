@@ -1,0 +1,10 @@
+[build]
+builder = "RAILPACK"
+buildCommand = "pnpm --filter @kiri/schema build && pnpm --filter @kiri/web build"
+watchPatterns = ["apps/web/**", "packages/schema/**", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "railway.web.toml"]
+
+[deploy]
+startCommand = "pnpm --filter @kiri/web start"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"

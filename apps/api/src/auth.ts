@@ -28,6 +28,13 @@ export function createAuth({ db, baseUrl, secret, trustedOrigins }: AuthOptions)
       database: {
         generateId: "uuid",
       },
+      // In production the web app and API are served from different Railway
+      // domains, which the browser treats as cross-site. Session cookies must
+      // be SameSite=None; Secure to be sent on credentialed cross-origin
+      // requests. Locally (http baseURL) we keep Better Auth's Lax defaults.
+      ...(baseUrl.startsWith("https://")
+        ? { defaultCookieAttributes: { sameSite: "none", secure: true } }
+        : {}),
     },
     emailAndPassword: {
       enabled: true,
