@@ -24,10 +24,14 @@ export const auth = createAuth({
   db,
   baseUrl,
   secret: process.env.AUTH_SECRET ?? "dev-secret-change-in-production",
+  // The web app's origin must be trusted so Better Auth accepts credentialed
+  // cross-origin auth requests (sign-up/sign-in) from it; otherwise it returns
+  // 403 INVALID_ORIGIN even when browser CORS passes.
   trustedOrigins: [
     "http://localhost:3000",
     "http://localhost:4000",
     baseUrl,
+    webOrigin,
   ],
 });
 
