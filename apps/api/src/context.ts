@@ -8,12 +8,12 @@ const connectionString =
 
 export const db: Database = createDb(connectionString);
 
-const baseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:4000";
+const baseUrl = process.env.API_URL ?? "http://localhost:4000";
 
 export const auth = createAuth({
   db,
   baseUrl,
-  secret: process.env.BETTER_AUTH_SECRET ?? "dev-secret-change-in-production",
+  secret: process.env.AUTH_SECRET ?? "dev-secret-change-in-production",
   trustedOrigins: [
     "http://localhost:3000",
     "http://localhost:4000",
@@ -71,7 +71,9 @@ export async function createContext(
 }
 
 export function setCorsHeaders(res: ServerResponse) {
-  res.setHeader("Access-Control-Allow-Origin", process.env.WEB_ORIGIN ?? "http://localhost:3000");
+  // WEB_URL is the web app's origin (scheme://host, no trailing slash) — used
+  // directly as the CORS Access-Control-Allow-Origin value.
+  res.setHeader("Access-Control-Allow-Origin", process.env.WEB_URL ?? "http://localhost:3000");
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader(
     "Access-Control-Allow-Headers",

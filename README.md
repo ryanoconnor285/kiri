@@ -121,6 +121,42 @@ Build/start are configured in [`railway.toml`](railway.toml) and [`railpack.json
 - **Build:** `pnpm --filter @kiri/schema build && pnpm --filter @kiri/db build && pnpm --filter @kiri/api build`
 - **Start:** `node apps/api/dist/index.js`
 
+### Web app (second service, same project)
+
+The web app runs as a **separate service** in the same Railway project. The repo
+root `railpack.json` is **API-only** and is inherited by every Railpack service in
+the repo, so a Railpack-built web service would build the API instead of the web
+app (no `.next` → `next start` crashes). The web service therefore builds from
+[`apps/web/Dockerfile`](apps/web/Dockerfile), which bypasses `railpack.json`
+entirely:
+
+1. In the project: **New → GitHub Repo → this repo** (creates a second service).
+2. **Settings → Build → Builder:** Dockerfile, **Dockerfile Path:** `apps/web/Dockerfile`.
+3. **Settings → Root Directory:** leave empty (the Docker build context is the
+   monorepo root).
+4. **Settings → Networking → Generate Domain** for both the web service and the API
+   service (the API needs a public domain too).
+
+`next start` binds to Railway's `$PORT` automatically. `NEXT_PUBLIC_API_URL` is a
+build-time variable — the Dockerfile reads it as a build arg (Railway passes
+service variables to Docker builds), so set it before the first deploy.
+
+Environment variables:
+
+| Service | Variable | Value |
+|---------|----------|-------|
+| web | `NEXT_PUBLIC_API_URL` | `https://<api-domain>` (baked in at build time) |
+| api | `API_URL` | `https://<api-domain>` (the API's own public URL) |
+| api | `WEB_URL` | `https://<web-domain>` (web app origin, used for CORS) |
+| api | `AUTH_SECRET` | random secret (`openssl rand -base64 32`) |
+| api | `NODE_ENV` | `production` |
+
+`API_URL` and the web's `NEXT_PUBLIC_API_URL` are the **same** value (the API's
+domain); `WEB_URL` is the **web app's** domain. Set the API's domain first so
+`NEXT_PUBLIC_API_URL` / `API_URL` are known before the first web build. The web and
+API live on different `*.up.railway.app` domains (cross-site), so the API issues
+session cookies as `SameSite=None; Secure` in production (see `apps/api/src/auth.ts`).
+
 ## GraphQL API
 
 Key operations:
