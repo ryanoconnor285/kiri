@@ -8,7 +8,17 @@ const connectionString =
 
 export const db: Database = createDb(connectionString);
 
-const baseUrl = process.env.API_URL ?? "http://localhost:4000";
+// Accept scheme-less values (e.g. Railway's RAILWAY_PUBLIC_DOMAIN) and normalize
+// to a full URL. Better Auth requires an absolute URL with a protocol, and the
+// CORS origin must have no trailing slash.
+function normalizeUrl(value: string | undefined, fallback: string): string {
+  const raw = (value ?? "").trim() || fallback;
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  return withScheme.replace(/\/+$/, "");
+}
+
+const baseUrl = normalizeUrl(process.env.API_URL, "http://localhost:4000");
+const webOrigin = normalizeUrl(process.env.WEB_URL, "http://localhost:3000");
 
 export const auth = createAuth({
   db,
@@ -71,9 +81,9 @@ export async function createContext(
 }
 
 export function setCorsHeaders(res: ServerResponse) {
-  // WEB_URL is the web app's origin (scheme://host, no trailing slash) — used
-  // directly as the CORS Access-Control-Allow-Origin value.
-  res.setHeader("Access-Control-Allow-Origin", process.env.WEB_URL ?? "http://localhost:3000");
+  // webOrigin is WEB_URL normalized to a scheme-prefixed origin with no trailing
+  // slash — used directly as the CORS Access-Control-Allow-Origin value.
+  res.setHeader("Access-Control-Allow-Origin", webOrigin);
   res.setHeader("Access-Control-Allow-Credentials", "true");
   res.setHeader(
     "Access-Control-Allow-Headers",
