@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "packages": {
+    "node": "22",
+    "pnpm": "10.11.0"
+  },
+  "steps": {
+    "build": {
+      "commands": [
+        "...",
+        "pnpm --filter @kiri/schema build && pnpm --filter @kiri/db build && pnpm --filter @kiri/api build"
+      ]
+    }
+  },
+  "deploy": {
+    "startCommand": "node apps/api/dist/index.js"
+  }
+}
