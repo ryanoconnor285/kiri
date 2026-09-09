@@ -13,7 +13,7 @@ const baseUrl = process.env.API_URL ?? "http://localhost:4000";
 export const auth = createAuth({
   db,
   baseUrl,
-  secret: process.env.BETTER_AUTH_SECRET ?? "dev-secret-change-in-production",
+  secret: process.env.AUTH_SECRET ?? "dev-secret-change-in-production",
   trustedOrigins: [
     "http://localhost:3000",
     "http://localhost:4000",

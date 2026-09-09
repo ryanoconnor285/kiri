@@ -148,7 +148,7 @@ Environment variables:
 | web | `NEXT_PUBLIC_API_URL` | `https://<api-domain>` (baked in at build time) |
 | api | `API_URL` | `https://<api-domain>` (the API's own public URL) |
 | api | `WEB_URL` | `https://<web-domain>` (web app origin, used for CORS) |
-| api | `BETTER_AUTH_SECRET` | random secret (`openssl rand -base64 32`) |
+| api | `AUTH_SECRET` | random secret (`openssl rand -base64 32`) |
 | api | `NODE_ENV` | `production` |
 
 `API_URL` and the web's `NEXT_PUBLIC_API_URL` are the **same** value (the API's
