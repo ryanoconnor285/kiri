@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
@@ -36,12 +36,22 @@ export default function DeckDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [flipped, setFlipped] = useState<Record<string, boolean>>({});
   const [childTitle, setChildTitle] = useState("");
+  const [frontText, setFrontText] = useState("");
+  const [backText, setBackText] = useState("");
+  const [savingCard, setSavingCard] = useState(false);
+  const [cardFeedback, setCardFeedback] = useState<{ kind: "ok" | "err"; text: string } | null>(
+    null,
+  );
+  const addCardRef = useRef<HTMLDivElement>(null);
+  const frontInputRef = useRef<HTMLTextAreaElement>(null);
 
   const refetch = useCallback(async () => {
     const [decksData, cardsData] = await Promise.all([
       gqlFetch<{ decks: Deck[] }>(DECKS_QUERY),
       gqlFetch<{ cards: Card[] }>(
-        `query($deckId: String!) { cards(deckId: $deckId) { id frontText backText createdAt } }`,
+        `query($deckId: String!) {
+          cards(deckId: $deckId, limit: 500) { id frontText backText createdAt }
+        }`,
         { deckId: params.id },
       ),
     ]);
@@ -58,7 +68,7 @@ export default function DeckDetailPage() {
     refetch()
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [session, isPending, router, refetch]);
+  }, [session?.user?.id, isPending, router, refetch]);
 
   const byId = useMemo(() => new Map(decks.map((d) => [d.id, d])), [decks]);
   const deck = byId.get(params.id) ?? null;
@@ -100,6 +110,39 @@ export default function DeckDetailPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create subfolder");
     }
+  }
+
+  async function addCard() {
+    const front = frontText.trim();
+    const back = backText.trim();
+    if (!front || !back || savingCard) return;
+    setSavingCard(true);
+    setCardFeedback(null);
+    try {
+      await gqlFetch(
+        `mutation($deckId: String!, $frontText: String!, $backText: String!) {
+          upsertCard(deckId: $deckId, frontText: $frontText, backText: $backText) { id }
+        }`,
+        { deckId: params.id, frontText: front, backText: back },
+      );
+      setFrontText("");
+      setBackText("");
+      setCardFeedback({ kind: "ok", text: "Card added — add another below." });
+      await refetch();
+      frontInputRef.current?.focus();
+    } catch (err) {
+      setCardFeedback({
+        kind: "err",
+        text: err instanceof Error ? err.message : "Failed to add card",
+      });
+    } finally {
+      setSavingCard(false);
+    }
+  }
+
+  function scrollToAddCard() {
+    addCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    frontInputRef.current?.focus();
   }
 
   if (isPending || loading) {
@@ -144,6 +187,9 @@ export default function DeckDetailPage() {
           <Link href={`/decks/${deck.id}/study`} className="btn btn-primary">
             Recall{(deck.dueCount ?? 0) > 0 ? ` · ${deck.dueCount} ready` : ""}
           </Link>
+          <button type="button" className="btn btn-secondary" onClick={scrollToAddCard}>
+            Add card
+          </button>
           <Link href={`/decks/${deck.id}/import`} className="btn btn-secondary">
             Import cards
           </Link>
@@ -182,8 +228,89 @@ export default function DeckDetailPage() {
         )}
       </section>
 
-      <section>
+      <section ref={addCardRef}>
         <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Cards</h2>
+        <div className="card stack" style={{ marginBottom: "1rem" }}>
+          <p className="muted" style={{ margin: 0 }}>
+            Add cards one at a time to <strong>{deck.title}</strong>. KaTeX math is supported
+            (e.g. <code>$E = mc^2$</code>).
+          </p>
+          <div className="stack">
+            <label className="stack" style={{ gap: "0.35rem" }}>
+              <span className="muted">Front (prompt)</span>
+              <textarea
+                ref={frontInputRef}
+                className="input textarea"
+                placeholder="Question or prompt…"
+                value={frontText}
+                rows={3}
+                onChange={(e) => setFrontText(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                    e.preventDefault();
+                    addCard();
+                  }
+                }}
+              />
+            </label>
+            <label className="stack" style={{ gap: "0.35rem" }}>
+              <span className="muted">Back (answer)</span>
+              <textarea
+                className="input textarea"
+                placeholder="Answer…"
+                value={backText}
+                rows={3}
+                onChange={(e) => setBackText(e.target.value)}
+                onKeyDown={(e) => {
+                  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                    e.preventDefault();
+                    addCard();
+                  }
+                }}
+              />
+            </label>
+          </div>
+          {(frontText.trim() || backText.trim()) && (
+            <div className="card flashcard flashcard-browse" style={{ cursor: "default" }}>
+              <p className="flashcard-label">Preview</p>
+              <FitCardBody contentKey={`preview:${frontText}:${backText}`}>
+                <CardFace text={frontText.trim() || "(empty front)"} />
+              </FitCardBody>
+              {backText.trim() && (
+                <>
+                  <p className="flashcard-label" style={{ marginTop: "0.75rem" }}>
+                    Back
+                  </p>
+                  <FitCardBody contentKey={`preview-back:${backText}`}>
+                    <CardFace text={backText} />
+                  </FitCardBody>
+                </>
+              )}
+            </div>
+          )}
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={savingCard || !frontText.trim() || !backText.trim()}
+              onClick={addCard}
+            >
+              {savingCard ? "Saving…" : "Add card"}
+            </button>
+            <span className="muted">⌘/Ctrl + Enter to save</span>
+          </div>
+          {cardFeedback && (
+            <p
+              className="muted"
+              style={{
+                margin: 0,
+                color: cardFeedback.kind === "ok" ? "var(--accent)" : "var(--danger)",
+              }}
+            >
+              {cardFeedback.text}
+            </p>
+          )}
+        </div>
         <div className="grid">
           {cards.map((card) => {
             const showBack = flipped[card.id];
