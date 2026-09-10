@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   customType,
   doublePrecision,
@@ -81,11 +82,19 @@ export const decks = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    // Self-referencing parent for a folder-style hierarchy. NULL = top level.
+    // Deleting a deck cascades to its descendants (and their cards).
+    parentId: uuid("parent_id").references((): AnyPgColumn => decks.id, {
+      onDelete: "cascade",
+    }),
     title: text("title").notNull(),
     description: text("description"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("decks_user_id_idx").on(table.userId)],
+  (table) => [
+    index("decks_user_id_idx").on(table.userId),
+    index("decks_parent_id_idx").on(table.parentId),
+  ],
 );
 
 export const cards = pgTable(
@@ -138,6 +147,12 @@ export const decksRelations = relations(decks, ({ one, many }) => ({
     fields: [decks.userId],
     references: [users.id],
   }),
+  parent: one(decks, {
+    fields: [decks.parentId],
+    references: [decks.id],
+    relationName: "deck_parent",
+  }),
+  children: many(decks, { relationName: "deck_parent" }),
   cards: many(cards),
 }));
 
