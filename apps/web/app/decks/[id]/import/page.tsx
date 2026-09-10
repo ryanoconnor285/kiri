@@ -256,7 +256,7 @@ export default function ImportPage() {
         {preview.length > 0 && (
           <div className="grid" ref={previewRef}>
             {preview.map((card, index) => (
-              <div key={index} className="card flashcard">
+              <div key={index} className="card flashcard flashcard-preview">
                 <p className="flashcard-label">Front</p>
                 <CardFace text={card.frontText} />
                 <p className="flashcard-label" style={{ marginTop: "1rem" }}>
