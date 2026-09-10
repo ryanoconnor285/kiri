@@ -376,6 +376,11 @@ a:hover {
   gap: 0.5rem;
 }
 
+.rating-bar .btn {
+  font-size: 0.8125rem;
+  padding: 0.625rem 0.35rem;
+}
+
 .rating-again {
   background: #7a2430;
   color: #ffd6db;

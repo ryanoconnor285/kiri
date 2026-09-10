@@ -43,8 +43,21 @@ function isBareLatex(text: string): boolean {
   return /\\[a-zA-Z]+\{/.test(trimmed) && !/\$|\\\(|\\\[/.test(trimmed);
 }
 
+function isFormulaLine(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.includes("\n")) return false;
+  if (isBareLatex(trimmed)) return true;
+  if (trimmed.length > 80) return false;
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (words.length > 6) return false;
+  if (/\b[A-Za-z]{4,}\b.*\b[A-Za-z]{4,}\b/.test(trimmed) && !/[=^\\]/.test(trimmed)) {
+    return false;
+  }
+  return /[=^_]/.test(trimmed) && /[A-Za-z]/.test(trimmed);
+}
+
 export function KatexRenderer({ text, block = false }: KatexRendererProps) {
-  if (isBareLatex(text)) {
+  if (isFormulaLine(text)) {
     return (
       <div className="katex-content">
         <BlockMath math={text.trim()} errorColor="#cc0000" />
