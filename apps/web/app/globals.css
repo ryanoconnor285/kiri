@@ -184,8 +184,35 @@ a:hover {
   font-size: inherit;
 }
 
-.katex-inline .katex {
+.katex-inline {
+  white-space: normal;
+}
+
+.katex-inline .card-prose-inline {
+  white-space: pre-wrap;
+}
+
+.katex-inline-math {
+  display: inline;
+  white-space: normal;
+}
+
+.katex-inline-math .katex,
+.katex-inline-math .katex-html,
+.katex-inline .katex-display,
+.katex-inline .katex-display > .katex {
+  display: inline;
+  text-align: inherit;
+  margin: 0;
+}
+
+.katex-inline .katex,
+.katex-inline-math .katex {
   font-size: 1.05em;
+}
+
+.katex-block-math .katex-display {
+  margin: 0.4em 0;
 }
 
 .flashcard {
