@@ -1,76 +1,35 @@
 "use client";
 
+import katex from "katex";
 import "katex/dist/katex.min.css";
-import { BlockMath, InlineMath } from "react-katex";
+import { isFormulaLine, splitKatexSegments } from "@/lib/katex-segments";
 
 type KatexRendererProps = {
   text: string;
+  /** Display mode only for a whole-card formula line. Never applied to $...$ in prose. */
   block?: boolean;
 };
 
-type Segment =
-  | { type: "text"; value: string }
-  | { type: "math"; value: string; display: boolean };
-
-const DELIM_RE =
-  /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)|\$([^$\n]+?)\$/g;
-
-function splitSegments(text: string): Segment[] {
-  const segments: Segment[] = [];
-  let last = 0;
-  let match: RegExpExecArray | null;
-  const re = new RegExp(DELIM_RE.source, "g");
-  while ((match = re.exec(text))) {
-    if (match.index > last) {
-      segments.push({ type: "text", value: text.slice(last, match.index) });
-    }
-    const display = Boolean(match[1] ?? match[2]);
-    const value = match[1] ?? match[2] ?? match[3] ?? match[4] ?? "";
-    segments.push({ type: "math", value, display });
-    last = match.index + match[0].length;
-  }
-  if (last < text.length) {
-    segments.push({ type: "text", value: text.slice(last) });
-  }
-  if (segments.length === 0) {
-    segments.push({ type: "text", value: text });
-  }
-  return segments;
-}
-
-function isBareLatex(text: string): boolean {
-  const trimmed = text.trim();
-  return /\\[a-zA-Z]+\{/.test(trimmed) && !/\$|\\\(|\\\[/.test(trimmed);
-}
-
-function isFormulaLine(text: string): boolean {
-  const trimmed = text.trim();
-  if (!trimmed || trimmed.includes("\n")) return false;
-  if (isBareLatex(trimmed)) return true;
-  if (trimmed.length > 80) return false;
-  const words = trimmed.split(/\s+/).filter(Boolean);
-  if (words.length > 6) return false;
-  if (/\b[A-Za-z]{4,}\b.*\b[A-Za-z]{4,}\b/.test(trimmed) && !/[=^\\]/.test(trimmed)) {
-    return false;
-  }
-  return /[=^_]/.test(trimmed) && /[A-Za-z]/.test(trimmed);
+function renderMathHtml(tex: string, display: boolean): string {
+  return katex.renderToString(tex, {
+    displayMode: display,
+    throwOnError: false,
+    errorColor: "#cc0000",
+  });
 }
 
 export function KatexRenderer({ text, block = false }: KatexRendererProps) {
   if (isFormulaLine(text)) {
     const trimmed = text.trim();
     return (
-      <div className="katex-content">
-        {block ? (
-          <BlockMath math={trimmed} errorColor="#cc0000" />
-        ) : (
-          <InlineMath math={trimmed} errorColor="#cc0000" />
-        )}
-      </div>
+      <div
+        className={block ? "katex-content katex-block-math" : "katex-content katex-inline-math"}
+        dangerouslySetInnerHTML={{ __html: renderMathHtml(trimmed, block) }}
+      />
     );
   }
 
-  const segments = splitSegments(text);
+  const segments = splitKatexSegments(text);
   const onlyText = segments.every((s) => s.type === "text");
 
   if (onlyText) {
@@ -88,8 +47,15 @@ export function KatexRenderer({ text, block = false }: KatexRendererProps) {
             </span>
           );
         }
-        const MathEl = segment.display ? BlockMath : InlineMath;
-        return <MathEl key={index} math={segment.value} errorColor="#cc0000" />;
+        return (
+          <span
+            key={index}
+            className={segment.display ? "katex-block-math" : "katex-inline-math"}
+            dangerouslySetInnerHTML={{
+              __html: renderMathHtml(segment.value, segment.display),
+            }}
+          />
+        );
       })}
     </div>
   );

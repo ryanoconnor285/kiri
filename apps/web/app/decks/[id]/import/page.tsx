@@ -258,11 +258,11 @@ export default function ImportPage() {
             {preview.map((card, index) => (
               <div key={index} className="card flashcard">
                 <p className="flashcard-label">Front</p>
-                <CardFace text={card.frontText} block />
+                <CardFace text={card.frontText} />
                 <p className="flashcard-label" style={{ marginTop: "1rem" }}>
                   Back
                 </p>
-                <CardFace text={card.backText} block />
+                <CardFace text={card.backText} />
               </div>
             ))}
           </div>
