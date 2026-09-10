@@ -184,6 +184,10 @@ a:hover {
   font-size: inherit;
 }
 
+.katex-inline .katex {
+  font-size: 1.05em;
+}
+
 .flashcard {
   min-height: 160px;
   background: var(--face);
@@ -198,6 +202,7 @@ a:hover {
 }
 
 .flashcard .katex-content,
+.flashcard .katex-inline,
 .flashcard .card-prose,
 .flashcard .card-prose-inline,
 .flashcard .card-html {

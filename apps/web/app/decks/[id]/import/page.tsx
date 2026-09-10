@@ -224,10 +224,14 @@ export default function ImportPage() {
             <li>
               Or one card per line: <code>Front | Back</code>
             </li>
+            <li>
+              Keep formulas in the sentence with <code>$\\Delta H &lt; 0$</code>. Use{" "}
+              <code>$$...$$</code> only for a standalone equation.
+            </li>
           </ul>
           <textarea
             className="input textarea"
-            placeholder={`H2SO4\nSulfuric acid\n\nE = mc^2\nMass-energy equivalence`}
+            placeholder={`What lowers enthalpy ($\\Delta H < 0$)?\nProtonating $R-O^{-}$ to $R-OH$.\n\nWhat raises entropy ($\\Delta S > 0$)?\nCleaving a polymer into monomers.`}
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
           />

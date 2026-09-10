@@ -114,11 +114,25 @@ export function stubAiImport(rawText: string): CardPayload[] {
     }
 
     if (lines.length >= 2) {
-      pushCard(
-        cards,
-        stripFieldLabel(lines[0]!),
-        lines.slice(1).map(stripFieldLabel).join("\n"),
-      );
+      const questionAt = [0];
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i]!;
+        if (line.endsWith("?") && line.length <= 240 && i < lines.length - 1) {
+          questionAt.push(i);
+        }
+      }
+      for (let q = 0; q < questionAt.length; q++) {
+        const start = questionAt[q]!;
+        const end = questionAt[q + 1] ?? lines.length;
+        pushCard(
+          cards,
+          stripFieldLabel(lines[start]!),
+          lines
+            .slice(start + 1, end)
+            .map(stripFieldLabel)
+            .join("\n"),
+        );
+      }
       continue;
     }
 

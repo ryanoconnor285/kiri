@@ -26,3 +26,12 @@ test("reads Front:/Back: labels", () => {
 test("returns no cards for a lone sentence", () => {
   assert.equal(stubAiImport("just a blob of notes").length, 0);
 });
+
+test("splits a second question in the same block", () => {
+  const cards = stubAiImport(
+    "What lowers enthalpy ($\\Delta H < 0$)?\nProtonating $R-O^{-}$.\nWhat raises entropy ($\\Delta S > 0$)?\nCleaving a polymer.",
+  );
+  assert.equal(cards.length, 2);
+  assert.match(cards[0]!.front_text, /enthalpy/);
+  assert.match(cards[1]!.front_text, /entropy/);
+});
