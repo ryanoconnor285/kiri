@@ -2,7 +2,7 @@ import SchemaBuilder from "@pothos/core";
 import DataloaderPlugin from "@pothos/plugin-dataloader";
 import { cards, decks, reviewStates } from "@kiri/db";
 import { AiImportInputSchema, stubAiImport } from "@kiri/schema";
-import { and, count, eq, lte, sql } from "drizzle-orm";
+import { and, count, eq, inArray, lte, sql } from "drizzle-orm";
 import type { GraphQLContext } from "../context.js";
 import { calculateSm2 } from "../srs/sm2.js";
 
@@ -34,6 +34,52 @@ async function getOwnedDeck(context: GraphQLContext, userId: string, deckId: str
     .where(and(eq(decks.id, deckId), eq(decks.userId, userId)))
     .limit(1);
   return deck ?? null;
+}
+
+async function loadOwnedDeckLinks(context: GraphQLContext, userId: string) {
+  return context.db
+    .select({ id: decks.id, parentId: decks.parentId })
+    .from(decks)
+    .where(eq(decks.userId, userId));
+}
+
+function collectDescendantIds(
+  all: Array<{ id: string; parentId: string | null }>,
+  rootId: string,
+): string[] {
+  const children = new Map<string, string[]>();
+  for (const deck of all) {
+    if (!deck.parentId) continue;
+    const list = children.get(deck.parentId) ?? [];
+    list.push(deck.id);
+    children.set(deck.parentId, list);
+  }
+
+  const ids: string[] = [];
+  const stack = [rootId];
+  const seen = new Set<string>();
+  while (stack.length > 0) {
+    const id = stack.pop()!;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    ids.push(id);
+    for (const child of children.get(id) ?? []) {
+      stack.push(child);
+    }
+  }
+  return ids;
+}
+
+async function getOwnedDeckIdsWithDescendants(
+  context: GraphQLContext,
+  userId: string,
+  rootDeckId: string,
+): Promise<string[] | null> {
+  const owned = await loadOwnedDeckLinks(context, userId);
+  if (!owned.some((deck) => deck.id === rootDeckId)) {
+    return null;
+  }
+  return collectDescendantIds(owned, rootDeckId);
 }
 
 // Walk up from candidateParentId; if we reach deckId, reparenting would form a cycle.
@@ -95,6 +141,25 @@ DeckType.implement({
           .select({ value: count() })
           .from(cards)
           .where(eq(cards.deckId, deck.id));
+        return result?.value ?? 0;
+      },
+    }),
+    dueCount: t.int({
+      nullable: true,
+      resolve: async (deck, _args, context) => {
+        const ids = await getOwnedDeckIdsWithDescendants(context, deck.userId, deck.id);
+        if (!ids || ids.length === 0) return 0;
+        const [result] = await context.db
+          .select({ value: count() })
+          .from(reviewStates)
+          .innerJoin(cards, eq(reviewStates.cardId, cards.id))
+          .where(
+            and(
+              eq(reviewStates.userId, deck.userId),
+              inArray(cards.deckId, ids),
+              lte(reviewStates.dueDate, sql`now()`),
+            ),
+          );
         return result?.value ?? 0;
       },
     }),
@@ -288,12 +353,8 @@ builder.queryType({
       },
       resolve: async (_root, args, context) => {
         const user = requireUser(context);
-        const [deck] = await context.db
-          .select()
-          .from(decks)
-          .where(and(eq(decks.id, args.deckId), eq(decks.userId, user.userId)))
-          .limit(1);
-        if (!deck) {
+        const ids = await getOwnedDeckIdsWithDescendants(context, user.userId, args.deckId);
+        if (!ids) {
           throw new Error("Deck not found");
         }
         return context.db
@@ -310,7 +371,7 @@ builder.queryType({
           .where(
             and(
               eq(reviewStates.userId, user.userId),
-              eq(cards.deckId, args.deckId),
+              inArray(cards.deckId, ids),
               lte(reviewStates.dueDate, sql`now()`),
             ),
           )

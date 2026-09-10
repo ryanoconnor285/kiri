@@ -20,9 +20,10 @@ type Deck = {
   title: string;
   description: string | null;
   cardCount: number;
+  dueCount: number;
 };
 
-const DECKS_QUERY = `query { decks { id parentId title description cardCount } }`;
+const DECKS_QUERY = `query { decks { id parentId title description cardCount dueCount } }`;
 
 export default function DeckDetailPage() {
   const params = useParams<{ id: string }>();
@@ -138,9 +139,14 @@ export default function DeckDetailPage() {
           <h1 style={{ marginTop: "0.5rem" }}>{deck.title}</h1>
           {deck.description && <p className="muted">{deck.description}</p>}
         </div>
-        <Link href={`/decks/${deck.id}/import`} className="btn btn-primary">
-          Import cards
-        </Link>
+        <div className="header-actions">
+          <Link href={`/decks/${deck.id}/study`} className="btn btn-primary">
+            Study{(deck.dueCount ?? 0) > 0 ? ` · ${deck.dueCount} due` : ""}
+          </Link>
+          <Link href={`/decks/${deck.id}/import`} className="btn btn-secondary">
+            Import cards
+          </Link>
+        </div>
       </header>
 
       <section style={{ marginBottom: "2rem" }}>
@@ -165,7 +171,10 @@ export default function DeckDetailPage() {
               <Link key={child.id} href={`/decks/${child.id}`} className="card">
                 <h2 style={{ fontSize: "1rem" }}>📁 {child.title}</h2>
                 {child.description && <p className="muted">{child.description}</p>}
-                <p className="muted">{child.cardCount ?? 0} cards</p>
+                <p className="muted">
+                  {child.cardCount ?? 0} cards
+                  {(child.dueCount ?? 0) > 0 ? ` · ${child.dueCount} due` : ""}
+                </p>
               </Link>
             ))}
           </div>

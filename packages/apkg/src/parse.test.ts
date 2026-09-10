@@ -9,16 +9,27 @@ test("parses a basic Anki package into front/back cards", async () => {
       { fields: ["Glycine", "Gly, G, the only achiral amino acid"] },
       { fields: ["Alanine", "Ala, A"] },
       { fields: ["H2SO4", "Sulfuric acid"] },
+      {
+        fields: [
+          "What is the three letter code of methionine?",
+          "Met",
+        ],
+      },
     ],
   });
 
   const parsed = await parseApkg(apkg);
-  assert.equal(parsed.cards.length, 3);
+  assert.equal(parsed.cards.length, 4);
   assert.equal(parsed.skippedCount, 0);
   assert.equal(parsed.cards[0]?.frontText, "Glycine");
   assert.equal(parsed.cards[0]?.backText.includes("Gly, G"), true);
   assert.equal(parsed.cards[1]?.frontText, "Alanine");
   assert.match(parsed.cards[2]?.frontText ?? "", /H.*2.*S.*O.*4|H2SO4/);
+  assert.equal(
+    parsed.cards[3]?.frontText,
+    "What is the three letter code of methionine?",
+  );
+  assert.equal(parsed.cards[3]?.frontText.includes("\\text{"), false);
 });
 
 test("inlines package images into the card HTML", async () => {

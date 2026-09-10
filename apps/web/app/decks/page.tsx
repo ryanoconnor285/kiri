@@ -13,9 +13,10 @@ type Deck = {
   description: string | null;
   createdAt: string;
   cardCount: number;
+  dueCount: number;
 };
 
-const DECKS_QUERY = `query { decks { id parentId title description createdAt cardCount } }`;
+const DECKS_QUERY = `query { decks { id parentId title description createdAt cardCount dueCount } }`;
 
 export default function DecksPage() {
   const router = useRouter();
@@ -86,42 +87,41 @@ export default function DecksPage() {
       return (
         <div key={deck.id}>
           <div
-            className="row"
-            style={{
-              alignItems: "center",
-              gap: "0.5rem",
-              padding: "0.5rem 0.25rem",
-              paddingLeft: `${depth * 1.5 + 0.25}rem`,
-              borderBottom: "1px solid var(--border, #eee)",
-            }}
+            className="tree-row"
+            style={{ paddingLeft: `${depth * 1.15 + 0.25}rem` }}
           >
             {hasKids ? (
               <button
                 type="button"
                 onClick={() => toggle(deck.id)}
                 className="btn btn-secondary"
-                style={{ padding: "0 0.5rem", lineHeight: 1.6 }}
+                style={{ padding: "0 0.5rem", minWidth: 44 }}
                 aria-label={open ? "Collapse" : "Expand"}
               >
                 {open ? "▾" : "▸"}
               </button>
             ) : (
-              <span style={{ display: "inline-block", width: "1.75rem", textAlign: "center" }}>
+              <span style={{ display: "inline-block", width: "2.75rem", textAlign: "center" }}>
                 ·
               </span>
             )}
             <span aria-hidden>{hasKids ? "📁" : "📄"}</span>
-            <Link href={`/decks/${deck.id}`} style={{ fontWeight: 600, flex: 1 }}>
+            <Link href={`/decks/${deck.id}`} className="tree-title">
               {deck.title}
             </Link>
             <span className="muted" style={{ fontSize: "0.85rem" }}>
               {deck.cardCount ?? 0} cards
               {hasKids ? ` · ${kids.length} sub` : ""}
             </span>
+            {(deck.dueCount ?? 0) > 0 && (
+              <span className="due-badge">{deck.dueCount} due</span>
+            )}
+            <Link href={`/decks/${deck.id}/study`} className="btn btn-primary">
+              Study
+            </Link>
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: "0.25rem 0.6rem" }}
               onClick={() => {
                 setAddingChildFor(addingChildFor === deck.id ? null : deck.id);
                 setChildTitle("");

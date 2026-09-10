@@ -42,7 +42,7 @@ export default function LoginPage() {
 
   return (
     <div className="container">
-      <div className="card" style={{ maxWidth: 420, margin: "4rem auto" }}>
+      <div className="card login-card" style={{ maxWidth: 420, margin: "4rem auto" }}>
         <h1 style={{ marginBottom: "0.5rem" }}>Kiri</h1>
         <p className="muted" style={{ marginBottom: "1.5rem" }}>
           STEM flashcards for pre-med and science coursework

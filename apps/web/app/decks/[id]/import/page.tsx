@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { CardFace } from "@/components/CardFace";
 import { gqlFetch } from "@/lib/graphql";
 import { uploadApkg } from "@/lib/import-apkg";
+import { KIRI_IMPORT_PROMPT } from "@/lib/import-prompt";
 
 type ImportedCard = {
   frontText: string;
@@ -25,11 +26,22 @@ export default function ImportPage() {
   const [preview, setPreview] = useState<ImportedCard[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [apkgName, setApkgName] = useState<string | null>(null);
   const [apkgProgress, setApkgProgress] = useState<ApkgProgress>({ phase: "idle" });
   const [error, setError] = useState<string | null>(null);
 
   const apkgBusy = apkgProgress.phase === "uploading" || apkgProgress.phase === "processing";
+
+  async function copyPrompt() {
+    try {
+      await navigator.clipboard.writeText(KIRI_IMPORT_PROMPT);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Could not copy the prompt. Select and copy it from the box below.");
+    }
+  }
 
   async function handlePreview() {
     setLoading(true);
@@ -194,7 +206,29 @@ export default function ImportPage() {
 
         <section className="card stack">
           <h2 style={{ fontSize: "1rem" }}>From text</h2>
-          <p className="muted">Paste lecture notes or Q/A pairs (blank lines or | to separate front/back)</p>
+          <p>
+            <strong>Kiri does not generate cards.</strong> It only splits the format below.
+            Use ChatGPT, Claude, or similar to turn notes into that format, then paste here.
+          </p>
+          <ol className="import-steps muted">
+            <li>Copy your lecture notes or a messy Q/A dump.</li>
+            <li>Paste them into another AI with the Kiri prompt (Copy prompt).</li>
+            <li>Paste the AI’s output into the box.</li>
+            <li>Preview, then save.</li>
+          </ol>
+          <div className="row">
+            <button type="button" className="btn btn-secondary" onClick={copyPrompt}>
+              {copied ? "Copied" : "Copy prompt"}
+            </button>
+          </div>
+          <p className="muted">Format:</p>
+          <ul className="import-rules muted">
+            <li>One card = front on the first line, back on the following line(s).</li>
+            <li>Separate cards with a blank line.</li>
+            <li>
+              Or one card per line: <code>Front | Back</code>
+            </li>
+          </ul>
           <textarea
             className="input textarea"
             placeholder={`H2SO4\nSulfuric acid\n\nE = mc^2\nMass-energy equivalence`}
@@ -222,7 +256,7 @@ export default function ImportPage() {
         {preview.length > 0 && (
           <div className="grid">
             {preview.map((card, index) => (
-              <div key={index} className="card">
+              <div key={index} className="card flashcard">
                 <p className="flashcard-label">Front</p>
                 <CardFace text={card.frontText} block />
                 <p className="flashcard-label" style={{ marginTop: "1rem" }}>

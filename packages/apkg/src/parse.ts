@@ -1,5 +1,4 @@
 import JSZip from "jszip";
-import { normalizeScientificText } from "@kiri/schema";
 import { decodeEntities, looksLikeHtml, sanitizeAnkiHtml } from "./html.js";
 import { renderCardSides } from "./templates.js";
 import { getSql, queryAll } from "./sql.js";
@@ -88,7 +87,7 @@ function finalizeSide(raw: string, media: Map<string, string>): string {
     return inlined;
   }
   const plain = decodeEntities(inlined).replace(/<[^>]+>/g, "").trim();
-  return normalizeScientificText(plain);
+  return plain;
 }
 
 function parseModels(raw: unknown): Map<number, AnkiModel> {
