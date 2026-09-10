@@ -4,6 +4,14 @@ import WebKit
 struct KatexView: UIViewRepresentable {
     let latex: String
 
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    final class Coordinator {
+        var lastLatex: String?
+    }
+
     func makeUIView(context: Context) -> WKWebView {
         let webView = WKWebView()
         webView.isOpaque = false
@@ -13,6 +21,9 @@ struct KatexView: UIViewRepresentable {
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
+        if context.coordinator.lastLatex == latex { return }
+        context.coordinator.lastLatex = latex
+
         let escaped = latex
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "'", with: "\\'")

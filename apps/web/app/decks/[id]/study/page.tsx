@@ -93,7 +93,7 @@ export default function RecallPage() {
     loadQueue()
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load this round"))
       .finally(() => setLoading(false));
-  }, [session, isPending, router, loadQueue]);
+  }, [params.id, isPending, session?.user?.id, router, loadQueue]);
 
   const current = queue[0] ?? null;
   const remaining = queue.length;

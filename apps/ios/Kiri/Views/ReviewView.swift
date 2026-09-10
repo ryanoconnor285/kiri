@@ -18,7 +18,9 @@ struct ReviewView: View {
     private let maxLooks = 3
 
     private var dueCards: [Card] {
-        allCards.filter { $0.deckId == deck.id }
+        allCards
+            .filter { $0.deckId == deck.id }
+            .sorted { $0.createdAt < $1.createdAt }
     }
 
     var body: some View {
@@ -52,6 +54,7 @@ struct ReviewView: View {
                     .aspectRatio(5 / 3, contentMode: .fit)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .onTapGesture {
+                        guard !showingBack else { return }
                         withAnimation { showingBack = true }
                     }
 
