@@ -51,7 +51,36 @@ export function normalizeScientificText(text: string): string {
     .replace(/_\(([^)]+)\)/g, "_{$1}");
 }
 
-/** Stub AI import: split on blank lines and normalize text */
+const FIELD_LABEL =
+  /^(?:q(?:uestion)?|a(?:nswer)?|front|back|prompt)\s*[:.\-–—]\s*/i;
+
+function stripFieldLabel(line: string): string {
+  return line.replace(FIELD_LABEL, "").trim();
+}
+
+function stripListMarker(line: string): string {
+  return line.replace(/^\s*(?:\d+[.)]|[-*•])\s+/, "").trim();
+}
+
+function splitInlinePair(line: string): [string, string] | null {
+  for (const sep of [" | ", "|", " — ", " – "]) {
+    const index = line.indexOf(sep);
+    if (index <= 0) continue;
+    const front = stripFieldLabel(line.slice(0, index));
+    const back = stripFieldLabel(line.slice(index + sep.length));
+    if (front && back) return [front, back];
+  }
+  return null;
+}
+
+function pushCard(cards: CardPayload[], front: string, back: string) {
+  const frontText = normalizeScientificText(front.trim());
+  const backText = normalizeScientificText(back.trim());
+  if (!frontText || !backText) return;
+  cards.push({ front_text: frontText, back_text: backText });
+}
+
+/** Split pasted Q/A text into cards (blank lines, labels, or Front | Back). */
 export function stubAiImport(rawText: string): CardPayload[] {
   const blocks = rawText
     .split(/\n\s*\n/)
@@ -61,20 +90,41 @@ export function stubAiImport(rawText: string): CardPayload[] {
   const cards: CardPayload[] = [];
 
   for (const block of blocks) {
-    const lines = block.split("\n").map((line) => line.trim());
-    if (lines.length >= 2) {
-      cards.push({
-        front_text: normalizeScientificText(lines[0]!),
-        back_text: normalizeScientificText(lines.slice(1).join("\n")),
-      });
-    } else if (lines.length === 1) {
-      const parts = lines[0]!.split("|").map((p) => p.trim());
-      if (parts.length >= 2) {
-        cards.push({
-          front_text: normalizeScientificText(parts[0]!),
-          back_text: normalizeScientificText(parts.slice(1).join(" | ")),
-        });
+    const lines = block
+      .split("\n")
+      .map((line) => stripListMarker(line.trim()))
+      .filter(Boolean);
+    if (lines.length === 0) continue;
+
+    const labeledFront = lines.find((line) =>
+      /^(?:front|q(?:uestion)?|prompt)\s*[:.\-–—]/i.test(line),
+    );
+    const labeledBack = lines.find((line) => /^(?:back|a(?:nswer)?)\s*[:.\-–—]/i.test(line));
+    if (labeledFront && labeledBack) {
+      pushCard(cards, stripFieldLabel(labeledFront), stripFieldLabel(labeledBack));
+      continue;
+    }
+
+    const inlinePairs = lines.map(splitInlinePair);
+    if (inlinePairs.every((pair) => pair !== null)) {
+      for (const pair of inlinePairs) {
+        pushCard(cards, pair![0], pair![1]);
       }
+      continue;
+    }
+
+    if (lines.length >= 2) {
+      pushCard(
+        cards,
+        stripFieldLabel(lines[0]!),
+        lines.slice(1).map(stripFieldLabel).join("\n"),
+      );
+      continue;
+    }
+
+    const inline = splitInlinePair(lines[0]!);
+    if (inline) {
+      pushCard(cards, inline[0], inline[1]);
     }
   }
 

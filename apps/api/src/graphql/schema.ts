@@ -2,6 +2,7 @@ import SchemaBuilder from "@pothos/core";
 import DataloaderPlugin from "@pothos/plugin-dataloader";
 import { cards, decks, reviewStates } from "@kiri/db";
 import { AiImportInputSchema, stubAiImport } from "@kiri/schema";
+import { GraphQLError } from "graphql";
 import { and, count, eq, inArray, lte, sql } from "drizzle-orm";
 import type { GraphQLContext } from "../context.js";
 import { calculateSm2 } from "../srs/sm2.js";
@@ -22,7 +23,9 @@ builder.scalarType("DateTime", {
 
 function requireUser(context: GraphQLContext) {
   if (!context.user) {
-    throw new Error("Unauthorized");
+    throw new GraphQLError("Please sign in again.", {
+      extensions: { code: "UNAUTHENTICATED" },
+    });
   }
   return context.user;
 }

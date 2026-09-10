@@ -24,14 +24,27 @@ export async function gqlFetch<T>(
     body: JSON.stringify({ query, variables }),
   });
 
-  const json = (await response.json()) as {
+  let json: {
     data?: T;
     errors?: Array<{ message: string }>;
   };
-
-  if (json.errors?.length) {
-    throw new Error(json.errors[0]?.message ?? "GraphQL error");
+  try {
+    json = (await response.json()) as typeof json;
+  } catch {
+    throw new Error("Could not reach the API. Try signing in again.");
   }
 
-  return json.data as T;
+  if (json.errors?.length) {
+    const message = json.errors[0]?.message ?? "GraphQL error";
+    if (/unauthor|sign in/i.test(message) || message === "Unexpected error.") {
+      throw new Error("Please sign in again.");
+    }
+    throw new Error(message);
+  }
+
+  if (!json.data) {
+    throw new Error("Please sign in again.");
+  }
+
+  return json.data;
 }
