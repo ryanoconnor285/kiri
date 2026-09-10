@@ -21,7 +21,7 @@ struct ReviewView: View {
             } else {
                 let card = dueCards[currentIndex]
 
-                Text(showingBack ? "Back" : "Front")
+                Text(showingBack ? "Answer" : "Prompt")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -50,11 +50,24 @@ struct ReviewView: View {
                 }
 
                 if showingBack {
-                    HStack(spacing: 12) {
-                        ReviewButton(title: "Again", color: .red) { submitReview(card: card, quality: 0) }
-                        ReviewButton(title: "Hard", color: .orange) { submitReview(card: card, quality: 3) }
-                        ReviewButton(title: "Good", color: .green) { submitReview(card: card, quality: 4) }
-                        ReviewButton(title: "Easy", color: .blue) { submitReview(card: card, quality: 5) }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("How did it come back?")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        ReviewChoice(title: "Blank", hint: "Nothing came back") {
+                            submitReview(card: card, quality: 0)
+                        }
+                        ReviewChoice(title: "Partial", hint: "Fragments only") {
+                            submitReview(card: card, quality: 3)
+                        }
+                        ReviewChoice(title: "Retrieved", hint: "I reconstructed it") {
+                            submitReview(card: card, quality: 4)
+                        }
+                        Button("It was automatic — park it longer") {
+                            submitReview(card: card, quality: 5)
+                        }
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
                     }
                     .padding(.horizontal)
                 }
@@ -94,16 +107,20 @@ struct ReviewView: View {
     }
 }
 
-private struct ReviewButton: View {
+private struct ReviewChoice: View {
     let title: String
-    let color: Color
+    let hint: String
     let action: () -> Void
 
     var body: some View {
-        Button(title, action: action)
-            .buttonStyle(.bordered)
-            .tint(color)
-            .frame(maxWidth: .infinity)
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).fontWeight(.semibold)
+                Text(hint).font(.caption).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.bordered)
     }
 }
 

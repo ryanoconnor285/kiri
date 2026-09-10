@@ -374,36 +374,90 @@ a:hover {
   max-width: 24rem;
 }
 
-.rating-bar {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
+.recall-panel {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
-.rating-bar .btn {
+.recall-prompt {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.recall-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.recall-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  min-height: 52px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.recall-choice:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.recall-choice-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.recall-choice-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.recall-blank {
+  border-color: #5a3a48;
+  background: #241820;
+}
+
+.recall-partial {
+  border-color: #3d4a62;
+  background: #1b2230;
+}
+
+.recall-retrieved {
+  border-color: #3a5c78;
+  background: #15202c;
+}
+
+.recall-automatic {
+  align-self: center;
+  background: none;
+  border: none;
+  color: var(--muted);
   font-size: 0.8125rem;
-  padding: 0.625rem 0.35rem;
+  min-height: 44px;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.rating-again {
-  background: #7a2430;
-  color: #ffd6db;
+.recall-automatic:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
-.rating-hard {
-  background: #7a4a16;
-  color: #ffe0b8;
-}
-
-.rating-good {
-  background: #1f6b3a;
-  color: #d4f5e0;
-}
-
-.rating-easy {
-  background: #1d4f8c;
-  color: #d6e8ff;
+.login-submit {
+  width: 100%;
 }
 
 @media (max-width: 639px) {

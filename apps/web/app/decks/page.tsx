@@ -114,10 +114,10 @@ export default function DecksPage() {
               {hasKids ? ` · ${kids.length} sub` : ""}
             </span>
             {(deck.dueCount ?? 0) > 0 && (
-              <span className="due-badge">{deck.dueCount} due</span>
+              <span className="due-badge">{deck.dueCount} ready</span>
             )}
             <Link href={`/decks/${deck.id}/study`} className="btn btn-primary">
-              Study
+              Recall
             </Link>
             <button
               type="button"
