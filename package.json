@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "turbo dev",
-    "build": "pnpm --filter @kiri/schema build && pnpm --filter @kiri/db build && pnpm --filter @kiri/api build",
+    "build": "pnpm --filter @kiri/schema build && pnpm --filter @kiri/apkg build && pnpm --filter @kiri/db build && pnpm --filter @kiri/api build",
     "start": "node apps/api/dist/index.js",
     "lint": "turbo lint",
     "db:generate": "pnpm --filter @kiri/db generate",

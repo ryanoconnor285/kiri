@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { gqlFetch } from "@/lib/graphql";
-import { KatexRenderer } from "@/components/KatexRenderer";
+import { CardFace } from "@/components/CardFace";
 
 type Card = {
   id: string;
@@ -186,7 +186,7 @@ export default function DeckDetailPage() {
                 style={{ textAlign: "left", cursor: "pointer", width: "100%" }}
               >
                 <p className="flashcard-label">{showBack ? "Back" : "Front"}</p>
-                <KatexRenderer text={showBack ? card.backText : card.frontText} block />
+                <CardFace text={showBack ? card.backText : card.frontText} block />
                 <p className="muted" style={{ marginTop: "0.75rem" }}>
                   Tap to flip
                 </p>

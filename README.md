@@ -168,6 +168,7 @@ Key operations:
 
 - **Queries:** `me`, `decks`, `deck`, `cards`, `dueCards`
 - **Mutations:** `createDeck`, `upsertCard`, `submitReview`, `aiImportCards`
+- **REST:** `POST /api/import/apkg?deckId=…` (session cookie; raw `.apkg` body)
 
 Auth uses Better Auth with cookie sessions on web and bearer tokens for iOS.
 
@@ -176,7 +177,6 @@ Auth uses Better Auth with cookie sessions on web and bearer tokens for iOS.
 This scaffold includes minimal working skeletons. Deferred for later phases:
 
 - Full bidirectional sync conflict resolution
-- `.apkg` Anki import
 - Production LLM integration (stub normalizes chemical formulas)
 - Custom PencilKit tool palette
 - App Store / TestFlight configuration

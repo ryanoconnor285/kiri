@@ -9,7 +9,7 @@
     "build": {
       "commands": [
         "...",
-        "pnpm --filter @kiri/schema build && pnpm --filter @kiri/db build && pnpm --filter @kiri/api build"
+        "pnpm --filter @kiri/schema build && pnpm --filter @kiri/apkg build && pnpm --filter @kiri/db build && pnpm --filter @kiri/api build"
       ]
     }
   },

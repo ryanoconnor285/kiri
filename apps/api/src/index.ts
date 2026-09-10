@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { createYoga } from "graphql-yoga";
 import { authHandler, createContextFromHeaders, setCorsHeaders } from "./context.js";
 import { schema } from "./graphql/schema.js";
+import { handleImportApkg } from "./import-apkg.js";
 
 const port = Number(process.env.PORT ?? 4000);
 
@@ -31,6 +32,11 @@ const server = createServer(async (req, res) => {
   if (url === "/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ status: "ok" }));
+    return;
+  }
+
+  if (url === "/api/import/apkg") {
+    await handleImportApkg(req, res);
     return;
   }
 
