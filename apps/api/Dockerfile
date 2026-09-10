@@ -7,11 +7,13 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/db/package.json ./packages/db/
 COPY packages/schema/package.json ./packages/schema/
+COPY packages/apkg/package.json ./packages/apkg/
 RUN pnpm install --frozen-lockfile || pnpm install
 
 FROM deps AS build
 COPY . .
 RUN pnpm --filter @kiri/schema build
+RUN pnpm --filter @kiri/apkg build
 RUN pnpm --filter @kiri/db build
 RUN pnpm --filter @kiri/api build
 
@@ -25,6 +27,7 @@ COPY --from=build /app/packages/db/dist ./packages/db/dist
 COPY --from=build /app/packages/db/package.json ./packages/db/
 COPY --from=build /app/packages/schema/dist ./packages/schema/dist
 COPY --from=build /app/packages/schema/package.json ./packages/schema/
+COPY --from=build /app/packages/apkg ./packages/apkg
 COPY --from=build /app/package.json ./
 COPY --from=build /app/pnpm-workspace.yaml ./
 EXPOSE 4000

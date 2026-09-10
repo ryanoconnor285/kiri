@@ -11,6 +11,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@kiri/apkg": "workspace:*",
     "@kiri/db": "workspace:*",
     "@kiri/schema": "workspace:*",
     "@pothos/core": "^4.7.0",
