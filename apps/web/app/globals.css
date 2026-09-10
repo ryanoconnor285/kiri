@@ -446,6 +446,15 @@ a:hover {
   padding: 1rem 1.15rem 0.85rem;
 }
 
+.study-card .card-prose,
+.study-card .card-html {
+  font-size: clamp(1.2rem, 0.7rem + 1.8vw, 1.7rem);
+}
+
+.study-card .card-html img {
+  max-height: none;
+}
+
 .study-card:disabled {
   cursor: default;
   opacity: 1;
