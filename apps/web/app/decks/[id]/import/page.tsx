@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { stubAiImport } from "@kiri/schema";
 import { CardFace } from "@/components/CardFace";
 import { gqlFetch } from "@/lib/graphql";
 import { uploadApkg } from "@/lib/import-apkg";
@@ -24,12 +25,12 @@ export default function ImportPage() {
   const router = useRouter();
   const [rawText, setRawText] = useState("");
   const [preview, setPreview] = useState<ImportedCard[]>([]);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [apkgName, setApkgName] = useState<string | null>(null);
   const [apkgProgress, setApkgProgress] = useState<ApkgProgress>({ phase: "idle" });
   const [error, setError] = useState<string | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const apkgBusy = apkgProgress.phase === "uploading" || apkgProgress.phase === "processing";
 
@@ -43,27 +44,22 @@ export default function ImportPage() {
     }
   }
 
-  async function handlePreview() {
-    setLoading(true);
+  function handlePreview() {
     setError(null);
-    try {
-      const data = await gqlFetch<{
-        aiImportCards: { cards: ImportedCard[]; normalizedCount: number };
-      }>(
-        `mutation($rawText: String!) {
-          aiImportCards(rawText: $rawText) {
-            normalizedCount
-            cards { frontText backText }
-          }
-        }`,
-        { rawText },
+    const imported = stubAiImport(rawText).map((card) => ({
+      frontText: card.front_text,
+      backText: card.back_text,
+    }));
+    setPreview(imported);
+    if (imported.length === 0) {
+      setError(
+        "No cards found. Put the question on the first line and the answer on the next line(s), with a blank line between cards — or use Front | Back on one line.",
       );
-      setPreview(data.aiImportCards.cards);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Import failed");
-    } finally {
-      setLoading(false);
+      return;
     }
+    requestAnimationFrame(() => {
+      previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   async function handleSave() {
@@ -228,10 +224,14 @@ export default function ImportPage() {
             <li>
               Or one card per line: <code>Front | Back</code>
             </li>
+            <li>
+              Keep formulas in the sentence with <code>$\\Delta H &lt; 0$</code>. Use{" "}
+              <code>$$...$$</code> only for a standalone equation.
+            </li>
           </ul>
           <textarea
             className="input textarea"
-            placeholder={`H2SO4\nSulfuric acid\n\nE = mc^2\nMass-energy equivalence`}
+            placeholder={`What lowers enthalpy ($\\Delta H < 0$)?\nProtonating $R-O^{-}$ to $R-OH$.\n\nWhat raises entropy ($\\Delta S > 0$)?\nCleaving a polymer into monomers.`}
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
           />
@@ -239,9 +239,9 @@ export default function ImportPage() {
             <button
               className="btn btn-primary"
               onClick={handlePreview}
-              disabled={loading || !rawText.trim()}
+              disabled={!rawText.trim()}
             >
-              {loading ? "Processing..." : "Preview import"}
+              Preview import
             </button>
             {preview.length > 0 && (
               <button className="btn btn-secondary" onClick={handleSave} disabled={saving}>
@@ -254,7 +254,7 @@ export default function ImportPage() {
         {error && <p style={{ color: "var(--danger)" }}>{error}</p>}
 
         {preview.length > 0 && (
-          <div className="grid">
+          <div className="grid" ref={previewRef}>
             {preview.map((card, index) => (
               <div key={index} className="card flashcard">
                 <p className="flashcard-label">Front</p>

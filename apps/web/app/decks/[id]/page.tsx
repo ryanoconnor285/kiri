@@ -141,7 +141,7 @@ export default function DeckDetailPage() {
         </div>
         <div className="header-actions">
           <Link href={`/decks/${deck.id}/study`} className="btn btn-primary">
-            Study{(deck.dueCount ?? 0) > 0 ? ` · ${deck.dueCount} due` : ""}
+            Recall{(deck.dueCount ?? 0) > 0 ? ` · ${deck.dueCount} ready` : ""}
           </Link>
           <Link href={`/decks/${deck.id}/import`} className="btn btn-secondary">
             Import cards
@@ -173,7 +173,7 @@ export default function DeckDetailPage() {
                 {child.description && <p className="muted">{child.description}</p>}
                 <p className="muted">
                   {child.cardCount ?? 0} cards
-                  {(child.dueCount ?? 0) > 0 ? ` · ${child.dueCount} due` : ""}
+                  {(child.dueCount ?? 0) > 0 ? ` · ${child.dueCount} ready` : ""}
                 </p>
               </Link>
             ))}

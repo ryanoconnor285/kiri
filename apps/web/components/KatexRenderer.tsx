@@ -58,9 +58,14 @@ function isFormulaLine(text: string): boolean {
 
 export function KatexRenderer({ text, block = false }: KatexRendererProps) {
   if (isFormulaLine(text)) {
+    const trimmed = text.trim();
     return (
       <div className="katex-content">
-        <BlockMath math={text.trim()} errorColor="#cc0000" />
+        {block ? (
+          <BlockMath math={trimmed} errorColor="#cc0000" />
+        ) : (
+          <InlineMath math={trimmed} errorColor="#cc0000" />
+        )}
       </div>
     );
   }
@@ -73,7 +78,7 @@ export function KatexRenderer({ text, block = false }: KatexRendererProps) {
   }
 
   return (
-    <div className="katex-content">
+    <div className="card-prose katex-inline">
       {segments.map((segment, index) => {
         if (segment.type === "text") {
           if (!segment.value) return null;
@@ -83,7 +88,7 @@ export function KatexRenderer({ text, block = false }: KatexRendererProps) {
             </span>
           );
         }
-        const MathEl = segment.display || block ? BlockMath : InlineMath;
+        const MathEl = segment.display ? BlockMath : InlineMath;
         return <MathEl key={index} math={segment.value} errorColor="#cc0000" />;
       })}
     </div>
