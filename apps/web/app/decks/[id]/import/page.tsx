@@ -4,13 +4,19 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { CardFace } from "@/components/CardFace";
-import { API_URL } from "@/lib/config";
 import { gqlFetch } from "@/lib/graphql";
+import { uploadApkg } from "@/lib/import-apkg";
 
 type ImportedCard = {
   frontText: string;
   backText: string;
 };
+
+type ApkgProgress =
+  | { phase: "idle" }
+  | { phase: "uploading"; percent: number }
+  | { phase: "processing" }
+  | { phase: "done"; message: string };
 
 export default function ImportPage() {
   const params = useParams<{ id: string }>();
@@ -20,9 +26,10 @@ export default function ImportPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [apkgName, setApkgName] = useState<string | null>(null);
-  const [apkgImporting, setApkgImporting] = useState(false);
-  const [apkgResult, setApkgResult] = useState<string | null>(null);
+  const [apkgProgress, setApkgProgress] = useState<ApkgProgress>({ phase: "idle" });
   const [error, setError] = useState<string | null>(null);
+
+  const apkgBusy = apkgProgress.phase === "uploading" || apkgProgress.phase === "processing";
 
   async function handlePreview() {
     setLoading(true);
@@ -77,42 +84,47 @@ export default function ImportPage() {
   async function handleApkg(file: File | undefined) {
     if (!file) return;
     setApkgName(file.name);
-    setApkgResult(null);
     setError(null);
     if (!/\.apkg$/i.test(file.name)) {
       setError("Please choose an Anki package ending in .apkg");
+      setApkgProgress({ phase: "idle" });
       return;
     }
-    setApkgImporting(true);
+    setApkgProgress({ phase: "uploading", percent: 0 });
+    // Let the empty bar paint before the request starts so a fast upload
+    // still shows progress instead of appearing frozen.
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
     try {
-      const response = await fetch(
-        `${API_URL}/api/import/apkg?deckId=${encodeURIComponent(params.id)}`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/octet-stream" },
-          body: file,
-        },
-      );
-      const json = (await response.json()) as {
-        importedCount?: number;
-        skippedCount?: number;
-        error?: string;
-      };
-      if (!response.ok) {
-        throw new Error(json.error ?? "Anki import failed");
-      }
+      const result = await uploadApkg(file, params.id, (update) => {
+        setApkgProgress(update);
+      });
       const skipped =
-        json.skippedCount && json.skippedCount > 0
-          ? ` (${json.skippedCount} skipped)`
-          : "";
-      setApkgResult(`Imported ${json.importedCount ?? 0} cards${skipped}.`);
+        result.skippedCount > 0 ? ` (${result.skippedCount} skipped)` : "";
+      setApkgProgress({
+        phase: "done",
+        message: `Imported ${result.importedCount} cards${skipped}.`,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 700));
       router.push(`/decks/${params.id}`);
     } catch (err) {
+      setApkgProgress({ phase: "idle" });
       setError(err instanceof Error ? err.message : "Anki import failed");
-    } finally {
-      setApkgImporting(false);
     }
+  }
+
+  function progressLabel() {
+    if (apkgProgress.phase === "uploading") {
+      return `Uploading ${apkgName ?? "package"}… ${apkgProgress.percent}%`;
+    }
+    if (apkgProgress.phase === "processing") {
+      return `Importing cards from ${apkgName ?? "package"}…`;
+    }
+    if (apkgProgress.phase === "done") {
+      return apkgProgress.message;
+    }
+    return null;
   }
 
   return (
@@ -140,13 +152,43 @@ export default function ImportPage() {
             className="input"
             type="file"
             accept=".apkg,application/octet-stream"
-            disabled={apkgImporting}
-            onChange={(e) => handleApkg(e.target.files?.[0])}
+            disabled={apkgBusy}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              handleApkg(file);
+            }}
           />
-          {apkgName && (
-            <p className="muted">
-              {apkgImporting ? `Importing ${apkgName}…` : apkgResult ?? apkgName}
-            </p>
+          {apkgProgress.phase !== "idle" && (
+            <div
+              className="progress"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={
+                apkgProgress.phase === "uploading" ? apkgProgress.percent : undefined
+              }
+              aria-valuetext={progressLabel() ?? undefined}
+              aria-busy={apkgBusy}
+            >
+              <div className="progress-track">
+                <div
+                  className={
+                    apkgProgress.phase === "processing"
+                      ? "progress-fill indeterminate"
+                      : "progress-fill"
+                  }
+                  style={
+                    apkgProgress.phase === "uploading"
+                      ? { width: `${apkgProgress.percent}%` }
+                      : apkgProgress.phase === "done"
+                        ? { width: "100%" }
+                        : undefined
+                  }
+                />
+              </div>
+              <p className="progress-label">{progressLabel()}</p>
+            </div>
           )}
         </section>
 
