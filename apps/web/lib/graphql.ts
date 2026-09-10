@@ -1,9 +1,9 @@
 import { cacheExchange, createClient, fetchExchange } from "urql";
-import { API_URL } from "./config";
+import { apiPath } from "./config";
 
 export function createGraphQLClient() {
   return createClient({
-    url: `${API_URL}/graphql`,
+    url: apiPath("/graphql"),
     exchanges: [cacheExchange, fetchExchange],
     fetchOptions: {
       credentials: "include",
@@ -17,7 +17,7 @@ export async function gqlFetch<T>(
   query: string,
   variables?: Record<string, unknown>,
 ): Promise<T> {
-  const response = await fetch(`${API_URL}/graphql`, {
+  const response = await fetch(apiPath("/graphql"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

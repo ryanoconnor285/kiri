@@ -1,4 +1,4 @@
-import { API_URL } from "./config";
+import { apiPath } from "./config";
 
 export type ApkgImportResult = {
   importedCount: number;
@@ -16,7 +16,7 @@ export function uploadApkg(
 ): Promise<ApkgImportResult> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${API_URL}/api/import/apkg?deckId=${encodeURIComponent(deckId)}`);
+    xhr.open("POST", apiPath(`/api/import/apkg?deckId=${encodeURIComponent(deckId)}`));
     xhr.withCredentials = true;
     xhr.setRequestHeader("Content-Type", "application/octet-stream");
 

@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn, signUp } from "@/lib/auth-client";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,20 +17,20 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      if (mode === "signup") {
-        const result = await signUp.email({ email, password, name });
-        if (result.error) {
-          setError(result.error.message ?? "Sign up failed");
-          return;
-        }
-      } else {
-        const result = await signIn.email({ email, password });
-        if (result.error) {
-          setError(result.error.message ?? "Sign in failed");
-          return;
-        }
+      const result =
+        mode === "signup"
+          ? await signUp.email({ email, password, name })
+          : await signIn.email({ email, password });
+      if (result.error) {
+        setError(
+          result.error.message ?? (mode === "signup" ? "Sign up failed" : "Sign in failed"),
+        );
+        return;
       }
-      router.push("/decks");
+      // Full load so the session cookie is read on a fresh page. Soft
+      // navigation races useSession and bounces back to login (especially
+      // on the first tap, and always when third-party cookies are blocked).
+      window.location.assign("/decks");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
     } finally {
@@ -45,7 +43,7 @@ export default function LoginPage() {
       <div className="card login-card" style={{ maxWidth: 420, margin: "4rem auto" }}>
         <h1 style={{ marginBottom: "0.5rem" }}>Kiri</h1>
         <p className="muted" style={{ marginBottom: "1.5rem" }}>
-          STEM flashcards for pre-med and science coursework
+          STEM recall for pre-med and science coursework
         </p>
 
         <form className="stack" onSubmit={handleSubmit}>
@@ -53,6 +51,8 @@ export default function LoginPage() {
             <input
               className="input"
               type="text"
+              name="name"
+              autoComplete="name"
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -62,6 +62,9 @@ export default function LoginPage() {
           <input
             className="input"
             type="email"
+            name="email"
+            autoComplete="email"
+            inputMode="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -70,6 +73,8 @@ export default function LoginPage() {
           <input
             className="input"
             type="password"
+            name="password"
+            autoComplete={mode === "signup" ? "new-password" : "current-password"}
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -79,8 +84,8 @@ export default function LoginPage() {
 
           {error && <p style={{ color: "var(--danger)" }}>{error}</p>}
 
-          <button className="btn btn-primary" type="submit" disabled={loading}>
-            {loading ? "..." : mode === "signup" ? "Create account" : "Sign in"}
+          <button className="btn btn-primary login-submit" type="submit" disabled={loading}>
+            {loading ? "Signing in…" : mode === "signup" ? "Create account" : "Sign in"}
           </button>
         </form>
 

@@ -146,6 +146,11 @@ entirely:
 build-time variable — the Dockerfile reads it as a build arg (Railway passes
 service variables to Docker builds), so set it before the first deploy.
 
+The web app proxies `/api/*` and `/graphql` to the API (see `apps/web/next.config.mjs`)
+so the browser talks to a **single origin**. Session cookies stay first-party, which
+matters on mobile Chrome / iOS where third-party cookies on `*.up.railway.app` are
+blocked. The API still sets `SameSite=None; Secure` for any leftover direct calls.
+
 Environment variables:
 
 | Service | Variable | Value |
@@ -158,9 +163,8 @@ Environment variables:
 
 `API_URL` and the web's `NEXT_PUBLIC_API_URL` are the **same** value (the API's
 domain); `WEB_URL` is the **web app's** domain. Set the API's domain first so
-`NEXT_PUBLIC_API_URL` / `API_URL` are known before the first web build. The web and
-API live on different `*.up.railway.app` domains (cross-site), so the API issues
-session cookies as `SameSite=None; Secure` in production (see `apps/api/src/auth.ts`).
+`NEXT_PUBLIC_API_URL` / `API_URL` are known before the first web build. The web
+build bakes `NEXT_PUBLIC_API_URL` into Next.js rewrites, not into browser fetches.
 
 ## GraphQL API
 

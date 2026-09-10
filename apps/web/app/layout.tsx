@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Kiri — STEM Flashcards",
-  description: "Hybrid STEM flashcard platform for pre-med and science coursework",
+  description: "STEM recall for pre-med and science coursework",
 };
 
 export const viewport: Viewport = {
