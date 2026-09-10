@@ -590,6 +590,19 @@ a:hover {
     max-height: 100%;
     aspect-ratio: unset;
   }
+
+  .recall-prompt {
+    display: none;
+  }
+
+  .recall-choice {
+    min-height: 44px;
+    padding: 0.45rem 0.7rem;
+  }
+
+  .recall-choice-hint {
+    font-size: 0.68rem;
+  }
 }
 
 @media (min-width: 1280px) {
