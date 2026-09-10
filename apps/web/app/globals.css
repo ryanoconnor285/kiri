@@ -129,6 +129,13 @@ a:hover {
 
 .katex-content {
   overflow-x: auto;
+  color: var(--text);
+}
+
+.katex,
+.katex-display,
+.katex-html {
+  color: var(--text) !important;
 }
 
 .flashcard {
@@ -143,6 +150,16 @@ a:hover {
   margin-bottom: 0.5rem;
 }
 
+.card-html {
+  color: var(--text);
+}
+
+/* Anki cards often ship with black text / white backgrounds from desktop themes. */
+.card-html *:not(img) {
+  color: inherit !important;
+  background-color: transparent !important;
+}
+
 .card-html img {
   max-width: 100%;
   height: auto;
@@ -155,4 +172,45 @@ a:hover {
   border: none;
   border-top: 1px solid var(--border);
   margin: 0.75rem 0;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.progress-track {
+  height: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.15s ease;
+}
+
+.progress-fill.indeterminate {
+  width: 35%;
+  transition: none;
+  animation: progress-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+.progress-label {
+  color: var(--muted);
+  font-size: 0.875rem;
 }
