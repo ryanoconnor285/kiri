@@ -45,7 +45,7 @@ export function CardFace({ text, block = false }: { text: string; block?: boolea
     if (!looksLikeHtml(text)) return null;
     return DOMPurify.sanitize(text, {
       ALLOWED_TAGS,
-      ALLOWED_ATTR: ["src", "alt", "class", "width", "height", "id", "colspan", "rowspan"],
+      ALLOWED_ATTR: ["src", "alt", "class", "id", "colspan", "rowspan"],
       ALLOW_DATA_ATTR: false,
     });
   }, [text]);

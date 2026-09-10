@@ -1,11 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { CardFace } from "@/components/CardFace";
+import { FitCardBody } from "@/components/FitCardBody";
 import { useSession } from "@/lib/auth-client";
 import { gqlFetch } from "@/lib/graphql";
+import {
+  applyRecall,
+  EMPTY_RECALL_META,
+  leaveQuality,
+  type RecallMeta,
+  type RecallRating,
+} from "@/lib/recall-queue";
 
 type RecallCard = {
   cardId: string;
@@ -16,38 +24,48 @@ type RecallCard = {
   };
 };
 
-/** Self-check of retrieval, not Anki-style ease grades. */
+type QueueItem = RecallCard & RecallMeta;
+
 const RECALL_CHOICES = [
   {
-    id: "blank",
-    title: "Blank",
-    hint: "Nothing came back — keep it in this round",
-    quality: 0,
+    id: "total" as const,
+    title: "Total",
+    hint: "It came back clean",
   },
   {
-    id: "partial",
-    title: "Partial",
-    hint: "Fragments only — I could not reconstruct it",
-    quality: 3,
+    id: "fuzzy" as const,
+    title: "Fuzzy",
+    hint: "Close — show it again this round",
   },
   {
-    id: "retrieved",
-    title: "Retrieved",
-    hint: "I reconstructed it from memory",
-    quality: 4,
+    id: "zero" as const,
+    title: "Zero",
+    hint: "Nothing came back — show it again this round",
   },
-] as const;
+];
+
+async function submitReview(cardId: string, quality: 0 | 3 | 4) {
+  await gqlFetch(
+    `mutation($cardId: String!, $quality: Int!) {
+      submitReview(cardId: $cardId, quality: $quality) { cardId }
+    }`,
+    { cardId, quality },
+  );
+}
 
 export default function RecallPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session, isPending } = useSession();
-  const [queue, setQueue] = useState<RecallCard[]>([]);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const queueRef = useRef(queue);
+  queueRef.current = queue;
   const [sessionTotal, setSessionTotal] = useState(0);
   const [doneCount, setDoneCount] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadQueue = useCallback(async () => {
@@ -60,7 +78,7 @@ export default function RecallPage() {
       }`,
       { deckId: params.id },
     );
-    setQueue(data.dueCards);
+    setQueue(data.dueCards.map((card) => ({ ...card, ...EMPTY_RECALL_META })));
     setSessionTotal(data.dueCards.length);
     setDoneCount(0);
     setRevealed(false);
@@ -80,25 +98,21 @@ export default function RecallPage() {
   const current = queue[0] ?? null;
   const remaining = queue.length;
 
-  async function markRecall(quality: number) {
+  async function markRecall(rating: RecallRating) {
     if (!current || submitting) return;
     setSubmitting(true);
     setError(null);
     try {
-      await gqlFetch(
-        `mutation($cardId: String!, $quality: Int!) {
-          submitReview(cardId: $cardId, quality: $quality) { cardId }
-        }`,
-        { cardId: current.cardId, quality },
-      );
+      const step = applyRecall(current, rating);
+      if (step.submit !== null) {
+        await submitReview(current.cardId, step.submit);
+      }
       setQueue((prev) => {
         const rest = prev.slice(1);
-        if (quality === 0) {
-          return [...rest, current];
-        }
-        return rest;
+        if (step.done) return rest;
+        return [...rest, { ...current, ...step.meta }];
       });
-      if (quality !== 0) {
+      if (step.done) {
         setDoneCount((n) => n + 1);
       }
       setRevealed(false);
@@ -107,6 +121,22 @@ export default function RecallPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function leaveRound() {
+    if (leaving) return;
+    setLeaving(true);
+    try {
+      for (const item of queueRef.current) {
+        const quality = leaveQuality(item);
+        if (quality !== null) {
+          await submitReview(item.cardId, quality);
+        }
+      }
+    } catch {
+      // Still leave the round if a flush fails.
+    }
+    router.push(`/decks/${params.id}`);
   }
 
   if (isPending || loading) {
@@ -135,12 +165,14 @@ export default function RecallPage() {
     );
   }
 
+  const faceText = revealed ? current.card.backText : current.card.frontText;
+
   return (
     <div className="study-shell">
       <header className="study-top">
-        <Link href={`/decks/${params.id}`} className="btn btn-secondary study-close">
+        <button type="button" className="btn btn-secondary study-close" onClick={leaveRound} disabled={leaving}>
           Leave
-        </Link>
+        </button>
         <p className="muted study-progress">
           {doneCount + 1} of {sessionTotal} this round
           {remaining !== sessionTotal - doneCount ? ` · ${remaining} still in hopper` : ""}
@@ -149,16 +181,20 @@ export default function RecallPage() {
 
       {error && <p style={{ color: "var(--danger)" }}>{error}</p>}
 
-      <button
-        type="button"
-        className="card flashcard study-card"
-        onClick={() => setRevealed(true)}
-        disabled={revealed}
-      >
-        <p className="flashcard-label">{revealed ? "Answer" : "Prompt"}</p>
-        <CardFace text={revealed ? current.card.backText : current.card.frontText} block />
-        {!revealed && <p className="flashcard-hint">Check your recall — tap to uncover</p>}
-      </button>
+      <div className="study-stage">
+        <button
+          type="button"
+          className="card flashcard study-card"
+          onClick={() => setRevealed(true)}
+          disabled={revealed}
+        >
+          <p className="flashcard-label">{revealed ? "Answer" : "Prompt"}</p>
+          <FitCardBody contentKey={`${current.cardId}:${revealed ? "a" : "p"}:${faceText}`}>
+            <CardFace text={faceText} />
+          </FitCardBody>
+          {!revealed && <p className="flashcard-hint">Check your recall — tap to uncover</p>}
+        </button>
+      </div>
 
       {revealed && (
         <div className="recall-panel">
@@ -170,21 +206,13 @@ export default function RecallPage() {
                 type="button"
                 className={`recall-choice recall-${choice.id}`}
                 disabled={submitting}
-                onClick={() => markRecall(choice.quality)}
+                onClick={() => markRecall(choice.id)}
               >
                 <span className="recall-choice-title">{choice.title}</span>
                 <span className="recall-choice-hint">{choice.hint}</span>
               </button>
             ))}
           </div>
-          <button
-            type="button"
-            className="recall-automatic"
-            disabled={submitting}
-            onClick={() => markRecall(5)}
-          >
-            It was automatic — park it longer
-          </button>
         </div>
       )}
     </div>

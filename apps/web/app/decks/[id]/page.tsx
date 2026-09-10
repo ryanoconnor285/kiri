@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { gqlFetch } from "@/lib/graphql";
 import { CardFace } from "@/components/CardFace";
+import { FitCardBody } from "@/components/FitCardBody";
 
 type Card = {
   id: string;
@@ -190,15 +191,14 @@ export default function DeckDetailPage() {
               <button
                 key={card.id}
                 type="button"
-                className="card flashcard"
+                className="card flashcard flashcard-browse"
                 onClick={() => toggleFlip(card.id)}
-                style={{ textAlign: "left", cursor: "pointer", width: "100%" }}
               >
                 <p className="flashcard-label">{showBack ? "Back" : "Front"}</p>
-                <CardFace text={showBack ? card.backText : card.frontText} block />
-                <p className="muted" style={{ marginTop: "0.75rem" }}>
-                  Tap to flip
-                </p>
+                <FitCardBody contentKey={`${card.id}:${showBack ? "b" : "f"}`}>
+                  <CardFace text={showBack ? card.backText : card.frontText} />
+                </FitCardBody>
+                <p className="flashcard-hint">Tap to flip</p>
               </button>
             );
           })}

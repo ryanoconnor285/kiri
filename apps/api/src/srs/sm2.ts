@@ -46,10 +46,16 @@ export function calculateSm2(
 export function qualityFromLabel(label: string): ReviewQuality {
   switch (label.toLowerCase()) {
     case "again":
+    case "zero":
+    case "blank":
       return 0;
     case "hard":
+    case "fuzzy":
+    case "partial":
       return 3;
     case "good":
+    case "total":
+    case "retrieved":
       return 4;
     case "easy":
       return 5;

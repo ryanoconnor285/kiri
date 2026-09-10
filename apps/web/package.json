@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "tsx --test lib/katex-segments.test.ts"
+    "test": "tsx --test lib/katex-segments.test.ts lib/recall-queue.test.ts"
   },
   "dependencies": {
     "@kiri/schema": "workspace:*",
