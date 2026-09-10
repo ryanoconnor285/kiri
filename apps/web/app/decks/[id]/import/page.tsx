@@ -91,6 +91,11 @@ export default function ImportPage() {
       return;
     }
     setApkgProgress({ phase: "uploading", percent: 0 });
+    // Let the empty bar paint before the request starts so a fast upload
+    // still shows progress instead of appearing frozen.
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
     try {
       const result = await uploadApkg(file, params.id, (update) => {
         setApkgProgress(update);
@@ -101,6 +106,7 @@ export default function ImportPage() {
         phase: "done",
         message: `Imported ${result.importedCount} cards${skipped}.`,
       });
+      await new Promise((resolve) => setTimeout(resolve, 700));
       router.push(`/decks/${params.id}`);
     } catch (err) {
       setApkgProgress({ phase: "idle" });

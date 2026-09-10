@@ -52,6 +52,7 @@ export function uploadApkg(
     };
     xhr.onerror = () => reject(new Error("Network error while uploading the Anki package"));
     xhr.onabort = () => reject(new Error("Upload cancelled"));
+    onProgress({ phase: "uploading", percent: 0 });
     xhr.send(file);
   });
 }
