@@ -1,0 +1,30 @@
+{
+  "name": "@kiri/apkg",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "tsc --noEmit",
+    "test": "tsx --test src/parse.test.ts"
+  },
+  "dependencies": {
+    "@kiri/schema": "workspace:*",
+    "jszip": "^3.10.1",
+    "sql.js": "^1.13.0"
+  },
+  "devDependencies": {
+    "@types/sql.js": "^1.4.9",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
