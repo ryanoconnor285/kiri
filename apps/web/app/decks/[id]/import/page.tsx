@@ -7,7 +7,7 @@ import { stubAiImport } from "@kiri/schema";
 import { CardFace } from "@/components/CardFace";
 import { gqlFetch } from "@/lib/graphql";
 import { uploadApkg } from "@/lib/import-apkg";
-import { KIRI_IMPORT_PROMPT } from "@/lib/import-prompt";
+import { KIRI_IMPORT_EXAMPLE, KIRI_IMPORT_PROMPT } from "@/lib/import-prompt";
 
 type ImportedCard = {
   frontText: string;
@@ -203,35 +203,67 @@ export default function ImportPage() {
         <section className="card stack">
           <h2 style={{ fontSize: "1rem" }}>From text</h2>
           <p>
-            <strong>Kiri does not generate cards.</strong> It only splits the format below.
-            Use ChatGPT, Claude, or similar to turn notes into that format, then paste here.
+            <strong>Kiri does not generate cards.</strong> It only parses strict Q/A text.
+            Paste lecture notes into ChatGPT or Claude with the prompt below, then paste the
+            result here and preview before saving.
           </p>
           <ol className="import-steps muted">
-            <li>Copy your lecture notes or a messy Q/A dump.</li>
-            <li>Paste them into another AI with the Kiri prompt (Copy prompt).</li>
-            <li>Paste the AI’s output into the box.</li>
-            <li>Preview, then save.</li>
+            <li>Copy raw notes (lecture slide text, textbook excerpt, messy outline).</li>
+            <li>
+              Open another AI chat → paste the <strong>Kiri prompt</strong> → paste your notes
+              at the bottom where indicated.
+            </li>
+            <li>Copy only the card output (no code fences or commentary) into the box below.</li>
+            <li>
+              <strong>Preview import</strong> — fix anything that split wrong before saving.
+            </li>
           </ol>
           <div className="row">
             <button type="button" className="btn btn-secondary" onClick={copyPrompt}>
-              {copied ? "Copied" : "Copy prompt"}
+              {copied ? "Copied" : "Copy prompt for AI"}
             </button>
           </div>
-          <p className="muted">Format:</p>
+          <details className="import-prompt-details">
+            <summary className="muted">Show full prompt</summary>
+            <pre className="import-prompt-preview">{KIRI_IMPORT_PROMPT}</pre>
+          </details>
+          <p className="muted" style={{ marginBottom: "0.25rem" }}>
+            What Kiri accepts (AI output must match):
+          </p>
           <ul className="import-rules muted">
-            <li>One card = front on the first line, back on the following line(s).</li>
-            <li>Separate cards with a blank line.</li>
             <li>
-              Or one card per line: <code>Front | Back</code>
+              <strong>Blank line between every card</strong> — lists without blank lines import
+              as one broken card.
             </li>
             <li>
-              Keep formulas in the sentence with <code>$\\Delta H &lt; 0$</code>. Use{" "}
-              <code>$$...$$</code> only for a standalone equation.
+              <strong>Front on line 1, back on following lines</strong> — or{" "}
+              <code>Term | definition</code> one card per line.
             </li>
+            <li>
+              Optional labels: <code>Front: …</code> and <code>Back: …</code> in the same block.
+            </li>
+            <li>
+              Inline math: <code>$\\Delta H &lt; 0$</code> inside a sentence.
+            </li>
+            <li>
+              Standalone equation line: bare <code>S = k\\ln W</code> or{" "}
+              <code>$$S = k\\ln W$$</code> (full back/front).
+            </li>
+            <li>
+              One fact per card — ask the AI to split dense notes into many short recall prompts.
+            </li>
+          </ul>
+          <p className="muted" style={{ marginBottom: "0.25rem" }}>
+            Common AI mistakes (won’t parse):
+          </p>
+          <ul className="import-rules muted">
+            <li>Markdown headings, “Card 1:”, or numbered lists with no blank lines</li>
+            <li>Intro text like “Here are 12 flashcards based on your notes”</li>
+            <li>Wrapping the whole output in a ``` code block</li>
           </ul>
           <textarea
             className="input textarea"
-            placeholder={`What lowers enthalpy ($\\Delta H < 0$)?\nProtonating $R-O^{-}$ to $R-OH$.\n\nWhat raises entropy ($\\Delta S > 0$)?\nCleaving a polymer into monomers.`}
+            placeholder={KIRI_IMPORT_EXAMPLE}
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
           />

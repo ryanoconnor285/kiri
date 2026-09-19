@@ -34,9 +34,16 @@ export function isBareLatex(text: string): boolean {
   return /\\[a-zA-Z]+\{/.test(trimmed) && !/\$|\\\(|\\\[/.test(trimmed);
 }
 
+/** True when the whole line is a bare formula without $...$ / $$...$$ delimiters. */
+export function hasExplicitMathDelimiters(text: string): boolean {
+  return /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\]/.test(text);
+}
+
 export function isFormulaLine(text: string): boolean {
   const trimmed = text.trim();
   if (!trimmed || trimmed.includes("\n")) return false;
+  // Delimited math ($...$, $$...$$) is parsed by splitKatexSegments — not a bare line.
+  if (hasExplicitMathDelimiters(trimmed)) return false;
   if (isBareLatex(trimmed)) return true;
   if (trimmed.length > 80) return false;
   const words = trimmed.split(/\s+/).filter(Boolean);

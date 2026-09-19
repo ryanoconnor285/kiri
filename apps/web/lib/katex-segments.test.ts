@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { splitKatexSegments } from "./katex-segments.ts";
+import { isFormulaLine, splitKatexSegments } from "./katex-segments.ts";
 
 test("$math$ inside a sentence is inline, not display", () => {
   const segments = splitKatexSegments(
@@ -25,6 +25,18 @@ test("multiple $math$ spans in one answer stay inline", () => {
   const math = segments.filter((segment) => segment.type === "math");
   assert.equal(math.length, 2);
   assert.ok(math.every((segment) => segment.type === "math" && segment.display === false));
+});
+
+test("delimited standalone equations are not treated as bare formula lines", () => {
+  assert.equal(isFormulaLine("$$S = k\\ln W$$"), false);
+  assert.equal(isFormulaLine("$S = k\\ln W$"), false);
+  assert.equal(isFormulaLine("S = k\\ln W"), true);
+
+  const display = splitKatexSegments("$$S = k\\ln W$$");
+  assert.deepEqual(display, [{ type: "math", value: "S = k\\ln W", display: true }]);
+
+  const inline = splitKatexSegments("$S = k\\ln W$");
+  assert.deepEqual(inline, [{ type: "math", value: "S = k\\ln W", display: false }]);
 });
 
 test("$$ and \\[ \\] are the only display delimiters", () => {

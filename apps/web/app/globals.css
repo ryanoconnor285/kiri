@@ -333,6 +333,25 @@ a:hover {
   padding-left: 1.25rem;
 }
 
+.import-prompt-details summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+.import-prompt-preview {
+  margin: 0.75rem 0 0;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
 .progress {
   display: flex;
   flex-direction: column;
