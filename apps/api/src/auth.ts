@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth";
+import { bearer } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import type { Database } from "@kiri/db";
 import * as schema from "@kiri/db";
@@ -39,6 +40,7 @@ export function createAuth({ db, baseUrl, secret, trustedOrigins }: AuthOptions)
     emailAndPassword: {
       enabled: true,
     },
+    plugins: [bearer()],
     socialProviders: {
       google: {
         clientId: process.env.GOOGLE_CLIENT_ID ?? "",

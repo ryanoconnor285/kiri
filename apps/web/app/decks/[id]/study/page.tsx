@@ -8,14 +8,14 @@ import { FitCardBody } from "@/components/FitCardBody";
 import { useSession } from "@/lib/auth-client";
 import { gqlFetch } from "@/lib/graphql";
 import {
-  applyRecall,
-  EMPTY_RECALL_META,
+  applyStudy,
+  EMPTY_STUDY_META,
   leaveQuality,
-  type RecallMeta,
-  type RecallRating,
+  type StudyMeta,
+  type StudyRating,
 } from "@/lib/recall-queue";
 
-type RecallCard = {
+type DueCard = {
   cardId: string;
   card: {
     id: string;
@@ -24,27 +24,22 @@ type RecallCard = {
   };
 };
 
-type QueueItem = RecallCard & RecallMeta;
+type QueueItem = DueCard & StudyMeta;
 
-const RECALL_CHOICES = [
+const STUDY_CHOICES = [
   {
-    id: "total" as const,
-    title: "Total",
-    hint: "It came back clean",
+    id: "right" as const,
+    title: "Right",
+    hint: "Got it — next card",
   },
   {
-    id: "fuzzy" as const,
-    title: "Fuzzy",
-    hint: "Close — show it again this round",
-  },
-  {
-    id: "zero" as const,
-    title: "Zero",
-    hint: "Nothing came back — show it again this round",
+    id: "wrong" as const,
+    title: "Wrong",
+    hint: "Back of the deck this session",
   },
 ];
 
-async function submitReview(cardId: string, quality: 0 | 3 | 4) {
+async function submitReview(cardId: string, quality: 0 | 4) {
   await gqlFetch(
     `mutation($cardId: String!, $quality: Int!) {
       submitReview(cardId: $cardId, quality: $quality) { cardId }
@@ -53,7 +48,7 @@ async function submitReview(cardId: string, quality: 0 | 3 | 4) {
   );
 }
 
-export default function RecallPage() {
+export default function StudyPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session, isPending } = useSession();
@@ -69,7 +64,7 @@ export default function RecallPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loadQueue = useCallback(async () => {
-    const data = await gqlFetch<{ dueCards: RecallCard[] }>(
+    const data = await gqlFetch<{ dueCards: DueCard[] }>(
       `query($deckId: String!) {
         dueCards(deckId: $deckId) {
           cardId
@@ -78,7 +73,7 @@ export default function RecallPage() {
       }`,
       { deckId: params.id },
     );
-    setQueue(data.dueCards.map((card) => ({ ...card, ...EMPTY_RECALL_META })));
+    setQueue(data.dueCards.map((card) => ({ ...card, ...EMPTY_STUDY_META })));
     setSessionTotal(data.dueCards.length);
     setDoneCount(0);
     setRevealed(false);
@@ -98,12 +93,12 @@ export default function RecallPage() {
   const current = queue[0] ?? null;
   const remaining = queue.length;
 
-  async function markRecall(rating: RecallRating) {
+  async function markStudy(rating: StudyRating) {
     if (!current || submitting) return;
     setSubmitting(true);
     setError(null);
     try {
-      const step = applyRecall(current, rating);
+      const step = applyStudy(current, rating);
       if (step.submit !== null) {
         await submitReview(current.cardId, step.submit);
       }
@@ -117,7 +112,7 @@ export default function RecallPage() {
       }
       setRevealed(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save that check");
+      setError(err instanceof Error ? err.message : "Could not save that answer");
     } finally {
       setSubmitting(false);
     }
@@ -155,7 +150,7 @@ export default function RecallPage() {
           <p className="muted">
             {sessionTotal === 0
               ? "Nothing is waiting in this folder or its nested decks."
-              : `You checked ${doneCount} card${doneCount === 1 ? "" : "s"} this round.`}
+              : `You studied ${doneCount} card${doneCount === 1 ? "" : "s"} this round.`}
           </p>
           <Link href={`/decks/${params.id}`} className="btn btn-primary">
             Back to folder
@@ -175,7 +170,7 @@ export default function RecallPage() {
         </button>
         <p className="muted study-progress">
           {doneCount + 1} of {sessionTotal} this round
-          {remaining !== sessionTotal - doneCount ? ` · ${remaining} still in hopper` : ""}
+          {remaining !== sessionTotal - doneCount ? ` · ${remaining} still in deck` : ""}
         </p>
       </header>
 
@@ -192,24 +187,24 @@ export default function RecallPage() {
           <FitCardBody contentKey={`${current.cardId}:${revealed ? "a" : "p"}:${faceText}`}>
             <CardFace text={faceText} />
           </FitCardBody>
-          {!revealed && <p className="flashcard-hint">Check your recall — tap to uncover</p>}
+          {!revealed && <p className="flashcard-hint">Tap to reveal the answer</p>}
         </button>
       </div>
 
       {revealed && (
-        <div className="recall-panel">
-          <p className="recall-prompt">How did it come back?</p>
-          <div className="recall-choices" role="group" aria-label="Recall check">
-            {RECALL_CHOICES.map((choice) => (
+        <div className="study-answer-panel">
+          <p className="study-answer-prompt">How did you do?</p>
+          <div className="study-answer-choices" role="group" aria-label="Study check">
+            {STUDY_CHOICES.map((choice) => (
               <button
                 key={choice.id}
                 type="button"
-                className={`recall-choice recall-${choice.id}`}
+                className={`study-answer-choice study-${choice.id}`}
                 disabled={submitting}
-                onClick={() => markRecall(choice.id)}
+                onClick={() => markStudy(choice.id)}
               >
-                <span className="recall-choice-title">{choice.title}</span>
-                <span className="recall-choice-hint">{choice.hint}</span>
+                <span className="study-answer-choice-title">{choice.title}</span>
+                <span className="study-answer-choice-hint">{choice.hint}</span>
               </button>
             ))}
           </div>

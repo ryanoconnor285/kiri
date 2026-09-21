@@ -87,7 +87,11 @@ Open the Xcode project:
 open apps/ios/Kiri.xcodeproj
 ```
 
-Run on iPad simulator for the PencilKit editor, iPhone for review mode. The scheme includes `KIRI_API_URL=http://localhost:4000` by default.
+**Local API (Debug scheme):** uses [`Config/Debug.xcconfig`](apps/ios/Config/Debug.xcconfig) → `http://localhost:4000`. Run `pnpm dev` on your Mac first.
+
+**Staging API:** edit [`Config/Staging.xcconfig`](apps/ios/Config/Staging.xcconfig) and set `KIRI_API_URL` to your Railway **API** service URL (no trailing slash). Run the **Kiri-Staging** scheme on simulator or a physical iPad/iPhone — same HTTPS URL on both.
+
+Sign in with the same email/password as the staging web app. Decks, study, import, and iPad Pencil editing sync through GraphQL. See [`docs/client-parity.md`](docs/client-parity.md) for the full operation map.
 
 Alternatively, regenerate with [XcodeGen](https://github.com/yonaskolb/XcodeGen) from `apps/ios/project.yml`:
 
@@ -174,7 +178,7 @@ Key operations:
 - **Mutations:** `createDeck`, `upsertCard`, `submitReview`, `aiImportCards`
 - **REST:** `POST /api/import/apkg?deckId=…` (session cookie; raw `.apkg` body)
 
-Auth uses Better Auth with cookie sessions on web and bearer tokens for iOS.
+Auth uses Better Auth: cookie sessions on web (same-origin proxy) and Bearer tokens on iOS (bearer plugin on the API).
 
 ## Phase 1 Scope
 
@@ -182,5 +186,5 @@ This scaffold includes minimal working skeletons. Deferred for later phases:
 
 - Full bidirectional sync conflict resolution
 - Production LLM integration (stub normalizes chemical formulas)
-- Custom PencilKit tool palette
+- Web notebook editor, OCR, PDF annotate, note→card — paged notebooks (iOS editor + web list) shipped
 - App Store / TestFlight configuration

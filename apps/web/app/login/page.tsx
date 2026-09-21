@@ -39,12 +39,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="container">
-      <div className="card login-card" style={{ maxWidth: 420, margin: "4rem auto" }}>
-        <h1 style={{ marginBottom: "0.5rem" }}>Kiri</h1>
-        <p className="muted" style={{ marginBottom: "1.5rem" }}>
-          STEM recall for pre-med and science coursework
-        </p>
+    <div className="login-page">
+      <div className="card login-card stack">
+        <h1>Kiri</h1>
+        <p className="muted">STEM recall for pre-med and science coursework</p>
 
         <form className="stack" onSubmit={handleSubmit}>
           {mode === "signup" && (
@@ -94,7 +92,7 @@ export default function LoginPage() {
           <button
             type="button"
             className="btn btn-secondary"
-            style={{ padding: "0.25rem 0.5rem", marginLeft: "0.5rem" }}
+            style={{ padding: "0.35rem 0.65rem", marginLeft: "0.35rem", minHeight: 36 }}
             onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
           >
             {mode === "signin" ? "Sign up" : "Sign in"}

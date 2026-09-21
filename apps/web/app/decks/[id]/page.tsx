@@ -24,7 +24,17 @@ type Deck = {
   dueCount: number;
 };
 
+type NoteList = {
+  id: string;
+  title: string;
+  pageCount: number;
+  updatedAt: string;
+};
+
 const DECKS_QUERY = `query { decks { id parentId title description cardCount dueCount } }`;
+const NOTES_QUERY = `query($deckId: String!) {
+  notes(deckId: $deckId) { id title pageCount updatedAt }
+}`;
 
 export default function DeckDetailPage() {
   const params = useParams<{ id: string }>();
@@ -32,6 +42,7 @@ export default function DeckDetailPage() {
   const { data: session, isPending } = useSession();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
+  const [notes, setNotes] = useState<NoteList[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [flipped, setFlipped] = useState<Record<string, boolean>>({});
@@ -46,7 +57,7 @@ export default function DeckDetailPage() {
   const frontInputRef = useRef<HTMLTextAreaElement>(null);
 
   const refetch = useCallback(async () => {
-    const [decksData, cardsData] = await Promise.all([
+    const [decksData, cardsData, notesData] = await Promise.all([
       gqlFetch<{ decks: Deck[] }>(DECKS_QUERY),
       gqlFetch<{ cards: Card[] }>(
         `query($deckId: String!) {
@@ -54,9 +65,11 @@ export default function DeckDetailPage() {
         }`,
         { deckId: params.id },
       ),
+      gqlFetch<{ notes: NoteList[] }>(NOTES_QUERY, { deckId: params.id }),
     ]);
     setDecks(decksData.decks);
     setCards(cardsData.cards);
+    setNotes(notesData.notes);
   }, [params.id]);
 
   useEffect(() => {
@@ -157,7 +170,7 @@ export default function DeckDetailPage() {
     return (
       <div className="container">
         <p style={{ color: "var(--danger)" }}>{error ?? "Deck not found"}</p>
-        <Link href="/decks">Back to decks</Link>
+        <Link href="/decks">Back to folders</Link>
       </div>
     );
   }
@@ -168,7 +181,7 @@ export default function DeckDetailPage() {
         <div>
           <nav className="muted" style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
             <Link href="/decks" className="muted">
-              Decks
+              Folders
             </Link>
             {ancestors.map((a) => (
               <span key={a.id}>
@@ -185,7 +198,7 @@ export default function DeckDetailPage() {
         </div>
         <div className="header-actions">
           <Link href={`/decks/${deck.id}/study`} className="btn btn-primary">
-            Recall{(deck.dueCount ?? 0) > 0 ? ` · ${deck.dueCount} ready` : ""}
+            Study{(deck.dueCount ?? 0) > 0 ? ` · ${deck.dueCount} ready` : ""}
           </Link>
           <button type="button" className="btn btn-secondary" onClick={scrollToAddCard}>
             Add card
@@ -197,7 +210,7 @@ export default function DeckDetailPage() {
       </header>
 
       <section style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Subfolders &amp; decks</h2>
+        <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Subfolders</h2>
         <div className="row" style={{ gap: "0.5rem", marginBottom: "1rem" }}>
           <input
             className="input"
@@ -223,6 +236,30 @@ export default function DeckDetailPage() {
                   {(child.dueCount ?? 0) > 0 ? ` · ${child.dueCount} ready` : ""}
                 </p>
               </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section style={{ marginBottom: "2rem" }}>
+        <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Notebooks</h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Handwriting is edited on iPad. Notebooks in this folder still sync here.
+        </p>
+        {notes.length === 0 ? (
+          <p className="muted">No notebooks yet. Create one from the iPad app.</p>
+        ) : (
+          <div className="grid">
+            {notes.map((note) => (
+              <div key={note.id} className="card">
+                <h2 style={{ fontSize: "1rem" }}>{note.title}</h2>
+                <p className="muted">
+                  {note.pageCount} page{note.pageCount === 1 ? "" : "s"}
+                  {note.updatedAt
+                    ? ` · updated ${new Date(note.updatedAt).toLocaleDateString()}`
+                    : ""}
+                </p>
+              </div>
             ))}
           </div>
         )}
@@ -329,7 +366,7 @@ export default function DeckDetailPage() {
               </button>
             );
           })}
-          {cards.length === 0 && <p className="muted">No cards in this deck yet.</p>}
+          {cards.length === 0 && <p className="muted">No cards in this folder yet.</p>}
         </div>
       </section>
     </div>

@@ -1,0 +1,4 @@
+// Local API (simulator → host machine)
+KIRI_API_URL = http:/$()/localhost:4000
+INFOPLIST_KEY_KIRIApiURL = $(KIRI_API_URL)
+INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES

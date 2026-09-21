@@ -1,9 +1,9 @@
 import SchemaBuilder from "@pothos/core";
 import DataloaderPlugin from "@pothos/plugin-dataloader";
-import { cards, decks, reviewStates } from "@kiri/db";
+import { cards, decks, notePages, notes, reviewStates } from "@kiri/db";
 import { AiImportInputSchema, stubAiImport } from "@kiri/schema";
 import { GraphQLError } from "graphql";
-import { and, count, eq, inArray, lte, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, lte, max, sql } from "drizzle-orm";
 import type { GraphQLContext } from "../context.js";
 import { calculateSm2 } from "../srs/sm2.js";
 
@@ -28,6 +28,50 @@ function requireUser(context: GraphQLContext) {
     });
   }
   return context.user;
+}
+
+async function getOwnedNote(context: GraphQLContext, userId: string, noteId: string) {
+  const [note] = await context.db
+    .select()
+    .from(notes)
+    .where(and(eq(notes.id, noteId), eq(notes.userId, userId)))
+    .limit(1);
+  return note ?? null;
+}
+
+function defaultNoteTitle(now = new Date()) {
+  return `Notebook · ${now.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })}`;
+}
+
+async function touchNote(context: GraphQLContext, noteId: string) {
+  await context.db
+    .update(notes)
+    .set({ updatedAt: new Date() })
+    .where(eq(notes.id, noteId));
+}
+
+async function reindexPages(context: GraphQLContext, noteId: string) {
+  const pages = await context.db
+    .select({ id: notePages.id })
+    .from(notePages)
+    .where(eq(notePages.noteId, noteId))
+    .orderBy(asc(notePages.pageIndex));
+  for (let i = 0; i < pages.length; i++) {
+    await context.db
+      .update(notePages)
+      .set({ pageIndex: i - pages.length - 1, updatedAt: new Date() })
+      .where(eq(notePages.id, pages[i]!.id));
+  }
+  for (let i = 0; i < pages.length; i++) {
+    await context.db
+      .update(notePages)
+      .set({ pageIndex: i, updatedAt: new Date() })
+      .where(eq(notePages.id, pages[i]!.id));
+  }
 }
 
 async function getOwnedDeck(context: GraphQLContext, userId: string, deckId: string) {
@@ -211,6 +255,67 @@ CardType.implement({
   }),
 });
 
+const NotePageType = builder.objectRef<{
+  id: string;
+  noteId: string;
+  pageIndex: number;
+  paperStyle: string;
+  pencilData: Buffer | null;
+  updatedAt: Date;
+}>("NotePage");
+
+const NoteType = builder.objectRef<{
+  id: string;
+  userId: string;
+  deckId: string;
+  title: string;
+  createdAt: Date;
+  updatedAt: Date;
+}>("Note");
+
+NotePageType.implement({
+  fields: (t) => ({
+    id: t.exposeString("id"),
+    noteId: t.exposeString("noteId"),
+    pageIndex: t.exposeInt("pageIndex"),
+    paperStyle: t.exposeString("paperStyle"),
+    pencilData: t.string({
+      nullable: true,
+      resolve: (page) => (page.pencilData ? page.pencilData.toString("base64") : null),
+    }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+NoteType.implement({
+  fields: (t) => ({
+    id: t.exposeString("id"),
+    deckId: t.exposeString("deckId"),
+    title: t.exposeString("title"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+    pageCount: t.int({
+      resolve: async (note, _args, context) => {
+        const [result] = await context.db
+          .select({ value: count() })
+          .from(notePages)
+          .where(eq(notePages.noteId, note.id));
+        return result?.value ?? 0;
+      },
+    }),
+    pages: t.field({
+      type: [NotePageType],
+      resolve: async (note, _args, context) => {
+        return context.db
+          .select()
+          .from(notePages)
+          .where(eq(notePages.noteId, note.id))
+          .orderBy(asc(notePages.pageIndex));
+      },
+    }),
+  }),
+});
+
 const ReviewStateType = builder.objectRef<{
   cardId: string;
   userId: string;
@@ -379,6 +484,35 @@ builder.queryType({
             ),
           )
           .orderBy(reviewStates.dueDate);
+      },
+    }),
+    notes: t.field({
+      type: [NoteType],
+      args: {
+        deckId: t.arg.string({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const deck = await getOwnedDeck(context, user.userId, args.deckId);
+        if (!deck) {
+          throw new Error("Folder not found");
+        }
+        return context.db
+          .select()
+          .from(notes)
+          .where(and(eq(notes.deckId, args.deckId), eq(notes.userId, user.userId)))
+          .orderBy(desc(notes.updatedAt));
+      },
+    }),
+    note: t.field({
+      type: NoteType,
+      nullable: true,
+      args: {
+        id: t.arg.string({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return getOwnedNote(context, user.userId, args.id);
       },
     }),
   }),
@@ -653,6 +787,229 @@ builder.mutationType({
           })),
           normalizedCount: imported.length,
         };
+      },
+    }),
+    createNote: t.field({
+      type: NoteType,
+      args: {
+        deckId: t.arg.string({ required: true }),
+        title: t.arg.string({ required: false }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const deck = await getOwnedDeck(context, user.userId, args.deckId);
+        if (!deck) {
+          throw new Error("Folder not found");
+        }
+        const title = args.title?.trim() || defaultNoteTitle();
+        const [note] = await context.db
+          .insert(notes)
+          .values({
+            userId: user.userId,
+            deckId: args.deckId,
+            title,
+          })
+          .returning();
+        await context.db.insert(notePages).values({
+          noteId: note!.id,
+          pageIndex: 0,
+          paperStyle: "blank",
+        });
+        return note!;
+      },
+    }),
+    updateNote: t.field({
+      type: NoteType,
+      args: {
+        id: t.arg.string({ required: true }),
+        title: t.arg.string({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const existing = await getOwnedNote(context, user.userId, args.id);
+        if (!existing) {
+          throw new Error("Notebook not found");
+        }
+        const title = args.title.trim();
+        if (!title) {
+          throw new Error("Title cannot be empty");
+        }
+        const [note] = await context.db
+          .update(notes)
+          .set({ title, updatedAt: new Date() })
+          .where(eq(notes.id, args.id))
+          .returning();
+        return note!;
+      },
+    }),
+    deleteNote: t.field({
+      type: "Boolean",
+      args: {
+        id: t.arg.string({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const result = await context.db
+          .delete(notes)
+          .where(and(eq(notes.id, args.id), eq(notes.userId, user.userId)))
+          .returning({ id: notes.id });
+        return result.length > 0;
+      },
+    }),
+    upsertNotePage: t.field({
+      type: NotePageType,
+      args: {
+        noteId: t.arg.string({ required: true }),
+        pageIndex: t.arg.int({ required: true }),
+        paperStyle: t.arg.string({ required: false }),
+        pencilData: t.arg.string({ required: false }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const note = await getOwnedNote(context, user.userId, args.noteId);
+        if (!note) {
+          throw new Error("Notebook not found");
+        }
+        const [existing] = await context.db
+          .select()
+          .from(notePages)
+          .where(and(eq(notePages.noteId, args.noteId), eq(notePages.pageIndex, args.pageIndex)))
+          .limit(1);
+        const pencil =
+          args.pencilData !== undefined && args.pencilData !== null
+            ? Buffer.from(args.pencilData, "base64")
+            : undefined;
+        if (existing) {
+          const [page] = await context.db
+            .update(notePages)
+            .set({
+              paperStyle: args.paperStyle ?? existing.paperStyle,
+              pencilData: pencil !== undefined ? pencil : existing.pencilData,
+              updatedAt: new Date(),
+            })
+            .where(eq(notePages.id, existing.id))
+            .returning();
+          await touchNote(context, args.noteId);
+          return page!;
+        }
+        const [page] = await context.db
+          .insert(notePages)
+          .values({
+            noteId: args.noteId,
+            pageIndex: args.pageIndex,
+            paperStyle: args.paperStyle ?? "blank",
+            pencilData: pencil ?? null,
+          })
+          .returning();
+        await touchNote(context, args.noteId);
+        return page!;
+      },
+    }),
+    addNotePage: t.field({
+      type: NotePageType,
+      args: {
+        noteId: t.arg.string({ required: true }),
+        paperStyle: t.arg.string({ required: false }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const note = await getOwnedNote(context, user.userId, args.noteId);
+        if (!note) {
+          throw new Error("Notebook not found");
+        }
+        const [agg] = await context.db
+          .select({ value: max(notePages.pageIndex) })
+          .from(notePages)
+          .where(eq(notePages.noteId, args.noteId));
+        const nextIndex = (agg?.value ?? -1) + 1;
+        const [last] = await context.db
+          .select({ paperStyle: notePages.paperStyle })
+          .from(notePages)
+          .where(eq(notePages.noteId, args.noteId))
+          .orderBy(desc(notePages.pageIndex))
+          .limit(1);
+        const [page] = await context.db
+          .insert(notePages)
+          .values({
+            noteId: args.noteId,
+            pageIndex: nextIndex,
+            paperStyle: args.paperStyle ?? last?.paperStyle ?? "blank",
+          })
+          .returning();
+        await touchNote(context, args.noteId);
+        return page!;
+      },
+    }),
+    deleteNotePage: t.field({
+      type: "Boolean",
+      args: {
+        id: t.arg.string({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const [row] = await context.db
+          .select({ page: notePages, note: notes })
+          .from(notePages)
+          .innerJoin(notes, eq(notePages.noteId, notes.id))
+          .where(and(eq(notePages.id, args.id), eq(notes.userId, user.userId)))
+          .limit(1);
+        if (!row) {
+          return false;
+        }
+        const [countRow] = await context.db
+          .select({ value: count() })
+          .from(notePages)
+          .where(eq(notePages.noteId, row.note.id));
+        if ((countRow?.value ?? 0) <= 1) {
+          throw new Error("A notebook must have at least one page");
+        }
+        await context.db.delete(notePages).where(eq(notePages.id, args.id));
+        await reindexPages(context, row.note.id);
+        await touchNote(context, row.note.id);
+        return true;
+      },
+    }),
+    reorderNotePages: t.field({
+      type: [NotePageType],
+      args: {
+        noteId: t.arg.string({ required: true }),
+        pageIds: t.arg.stringList({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const note = await getOwnedNote(context, user.userId, args.noteId);
+        if (!note) {
+          throw new Error("Notebook not found");
+        }
+        const existing = await context.db
+          .select({ id: notePages.id })
+          .from(notePages)
+          .where(eq(notePages.noteId, args.noteId));
+        if (existing.length !== args.pageIds.length) {
+          throw new Error("Page list does not match this notebook");
+        }
+        const owned = new Set(existing.map((p) => p.id));
+        if (args.pageIds.some((id) => !owned.has(id))) {
+          throw new Error("Page list does not match this notebook");
+        }
+        for (let i = 0; i < args.pageIds.length; i++) {
+          await context.db
+            .update(notePages)
+            .set({ pageIndex: -(i + 1), updatedAt: new Date() })
+            .where(eq(notePages.id, args.pageIds[i]!));
+        }
+        for (let i = 0; i < args.pageIds.length; i++) {
+          await context.db
+            .update(notePages)
+            .set({ pageIndex: i, updatedAt: new Date() })
+            .where(eq(notePages.id, args.pageIds[i]!));
+        }
+        await touchNote(context, args.noteId);
+        return context.db
+          .select()
+          .from(notePages)
+          .where(eq(notePages.noteId, args.noteId))
+          .orderBy(asc(notePages.pageIndex));
       },
     }),
   }),

@@ -3,6 +3,14 @@ options:
   bundleIdPrefix: com.kiri
   deploymentTarget:
     iOS: "17.0"
+  configurations:
+    Debug:
+      xcconfig: Config/Debug.xcconfig
+    Staging:
+      xcconfig: Config/Staging.xcconfig
+    Release:
+      buildSettings:
+        SWIFT_OPTIMIZATION_LEVEL: -O
 targets:
   Kiri:
     type: application
@@ -16,3 +24,10 @@ targets:
       INFOPLIST_KEY_UILaunchScreen_Generation: YES
       INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
       GENERATE_INFOPLIST_FILE: YES
+      INFOPLIST_FILE: Kiri/Info.plist
+    scheme:
+      testTargets: []
+      environmentVariables:
+        - variable: KIRI_API_URL
+          value: http://localhost:4000
+          isEnabled: false

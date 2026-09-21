@@ -10,6 +10,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -108,10 +109,56 @@ export const cards = pgTable(
     backText: text("back_text").notNull().default(""),
     frontPencilData: bytea("front_pencil_data"),
     backPencilData: bytea("back_pencil_data"),
+    sourceNoteId: uuid("source_note_id").references((): AnyPgColumn => notes.id, {
+      onDelete: "set null",
+    }),
+    sourcePageId: uuid("source_page_id").references((): AnyPgColumn => notePages.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("cards_deck_id_idx").on(table.deckId)],
+  (table) => [
+    index("cards_deck_id_idx").on(table.deckId),
+    index("cards_source_note_id_idx").on(table.sourceNoteId),
+  ],
+);
+
+export const notes = pgTable(
+  "notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    deckId: uuid("deck_id")
+      .notNull()
+      .references(() => decks.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("notes_user_id_idx").on(table.userId),
+    index("notes_deck_id_idx").on(table.deckId),
+  ],
+);
+
+export const notePages = pgTable(
+  "note_pages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    noteId: uuid("note_id")
+      .notNull()
+      .references(() => notes.id, { onDelete: "cascade" }),
+    pageIndex: integer("page_index").notNull().default(0),
+    paperStyle: text("paper_style").notNull().default("blank"),
+    pencilData: bytea("pencil_data"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("note_pages_note_id_page_index_idx").on(table.noteId, table.pageIndex),
+  ],
 );
 
 export const reviewStates = pgTable(
@@ -154,12 +201,40 @@ export const decksRelations = relations(decks, ({ one, many }) => ({
   }),
   children: many(decks, { relationName: "deck_parent" }),
   cards: many(cards),
+  notes: many(notes),
+}));
+
+export const notesRelations = relations(notes, ({ one, many }) => ({
+  user: one(users, {
+    fields: [notes.userId],
+    references: [users.id],
+  }),
+  deck: one(decks, {
+    fields: [notes.deckId],
+    references: [decks.id],
+  }),
+  pages: many(notePages),
+}));
+
+export const notePagesRelations = relations(notePages, ({ one }) => ({
+  note: one(notes, {
+    fields: [notePages.noteId],
+    references: [notes.id],
+  }),
 }));
 
 export const cardsRelations = relations(cards, ({ one, many }) => ({
   deck: one(decks, {
     fields: [cards.deckId],
     references: [decks.id],
+  }),
+  sourceNote: one(notes, {
+    fields: [cards.sourceNoteId],
+    references: [notes.id],
+  }),
+  sourcePage: one(notePages, {
+    fields: [cards.sourcePageId],
+    references: [notePages.id],
   }),
   reviewStates: many(reviewStates),
 }));
@@ -178,4 +253,6 @@ export const reviewStatesRelations = relations(reviewStates, ({ one }) => ({
 export type User = typeof users.$inferSelect;
 export type Deck = typeof decks.$inferSelect;
 export type Card = typeof cards.$inferSelect;
+export type Note = typeof notes.$inferSelect;
+export type NotePage = typeof notePages.$inferSelect;
 export type ReviewState = typeof reviewStates.$inferSelect;

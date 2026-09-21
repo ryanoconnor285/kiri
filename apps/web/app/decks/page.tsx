@@ -18,6 +18,13 @@ type Deck = {
 
 const DECKS_QUERY = `query { decks { id parentId title description createdAt cardCount dueCount } }`;
 
+function timeGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 export default function DecksPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
@@ -56,6 +63,16 @@ export default function DecksPage() {
     }
     return map;
   }, [decks]);
+
+  const totalDue = useMemo(
+    () => decks.reduce((sum, deck) => sum + (deck.dueCount ?? 0), 0),
+    [decks],
+  );
+
+  const firstDueDeck = useMemo(
+    () => decks.find((deck) => (deck.dueCount ?? 0) > 0) ?? null,
+    [decks],
+  );
 
   async function createDeck(parentId: string | null, title: string) {
     const trimmed = title.trim();
@@ -106,6 +123,7 @@ export default function DecksPage() {
               </span>
             )}
             <span aria-hidden>{hasKids ? "📁" : "📄"}</span>
+            <span className="subject-dot" aria-hidden />
             <Link href={`/decks/${deck.id}`} className="tree-title">
               {deck.title}
             </Link>
@@ -117,7 +135,7 @@ export default function DecksPage() {
               <span className="due-badge">{deck.dueCount} ready</span>
             )}
             <Link href={`/decks/${deck.id}/study`} className="btn btn-primary">
-              Recall
+              Study
             </Link>
             <button
               type="button"
@@ -180,26 +198,50 @@ export default function DecksPage() {
 
   const rootCount = childrenByParent.get(null)?.length ?? 0;
 
-  return (
-    <div className="container">
-      <header className="header">
+  const mainContent = (
+    <>
+      <header className="header home-header">
         <div>
-          <h1>Your Decks</h1>
-          <p className="muted">{session?.user?.email}</p>
+          <p className="home-greeting">{timeGreeting()}</p>
+          <p className="home-sub">Ready for your review?</p>
+          <p className="muted" style={{ marginTop: "0.5rem", fontSize: "0.8125rem" }}>
+            {session?.user?.email}
+          </p>
         </div>
-        <button className="btn btn-secondary" onClick={() => signOut()}>
+        <button className="btn btn-secondary" type="button" onClick={() => signOut()}>
           Sign out
         </button>
       </header>
 
       {error && <p style={{ color: "var(--danger)", marginBottom: "1rem" }}>{error}</p>}
 
-      <div className="card stack" style={{ marginBottom: "2rem" }}>
-        <h2 style={{ fontSize: "1rem" }}>New top-level folder or deck</h2>
+      <section className="review-hero" aria-labelledby="review-heading">
+        <h2 id="review-heading">Today&apos;s study</h2>
+        <p className="review-hero-stats">
+          {totalDue > 0 ? `${totalDue} card${totalDue === 1 ? "" : "s"}` : "All caught up"}
+        </p>
+        <p className="review-hero-meta">
+          {totalDue > 0
+            ? "Cards waiting across your folders."
+            : "Nothing is due right now. Browse your decks or add new material."}
+        </p>
+        {firstDueDeck ? (
+          <Link href={`/decks/${firstDueDeck.id}/study`} className="btn btn-primary">
+            Start study
+          </Link>
+        ) : (
+          <span className="btn btn-secondary" style={{ pointerEvents: "none", opacity: 0.7 }}>
+            Start study
+          </span>
+        )}
+      </section>
+
+      <div className="card stack" style={{ marginBottom: "1.5rem" }}>
+        <h2 style={{ fontSize: "1rem", fontWeight: 600 }}>New top-level folder or deck</h2>
         <div className="row">
           <input
             className="input"
-            placeholder='e.g. "Biochemistry"'
+            placeholder='e.g. "Organic Chemistry"'
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => {
@@ -210,6 +252,7 @@ export default function DecksPage() {
             }}
           />
           <button
+            type="button"
             className="btn btn-primary"
             onClick={() => {
               createDeck(null, newTitle);
@@ -219,11 +262,9 @@ export default function DecksPage() {
             Create
           </button>
         </div>
-        <p className="muted" style={{ fontSize: "0.85rem" }}>
-          Use <strong>+ Subfolder</strong> on any item to nest decks, e.g. Biochemistry ▸ Unit 1 ▸ Lecture.
-        </p>
       </div>
 
+      <h2 className="section-title">Your decks</h2>
       <div className="card" style={{ padding: "0.5rem 0.75rem" }}>
         {rootCount === 0 ? (
           <p className="muted" style={{ padding: "0.75rem" }}>
@@ -232,6 +273,20 @@ export default function DecksPage() {
         ) : (
           renderNodes(null, 0)
         )}
+      </div>
+    </>
+  );
+
+  return (
+    <div className="app-shell">
+      <aside className="app-sidebar" aria-label="Navigation">
+        <p className="app-sidebar-title">Kiri</p>
+        <p className="muted" style={{ fontSize: "0.875rem" }}>
+          Decks &amp; study
+        </p>
+      </aside>
+      <div className="app-main container" style={{ maxWidth: "none", margin: 0 }}>
+        {mainContent}
       </div>
     </div>
   );

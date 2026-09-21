@@ -1,59 +1,45 @@
-export type RecallRating = "total" | "fuzzy" | "zero";
+export type StudyRating = "right" | "wrong";
 
-export const MAX_LOOKS = 3;
-
-export type RecallMeta = {
-  looks: number;
-  zeroSubmitted: boolean;
-  pendingFuzzy: boolean;
+export type StudyMeta = {
+  /** Wrong answers this session (for leave-round SM-2 flush). */
+  wrongAttempts: number;
 };
 
-export const EMPTY_RECALL_META: RecallMeta = {
-  looks: 0,
-  zeroSubmitted: false,
-  pendingFuzzy: false,
+export const EMPTY_STUDY_META: StudyMeta = {
+  wrongAttempts: 0,
 };
 
-export type RecallStep = {
-  submit: 0 | 3 | 4 | null;
+export type StudyStep = {
+  submit: 0 | 4 | null;
   done: boolean;
-  meta: RecallMeta;
+  meta: StudyMeta;
 };
 
-/** Hopper + one SM-2 write when the card leaves (or Zero miss, once). */
-export function applyRecall(meta: RecallMeta, rating: RecallRating): RecallStep {
-  if (rating === "total") {
+/** Session hopper: Right parks the card; Wrong sends it to the back of the queue. */
+export function applyStudy(meta: StudyMeta, rating: StudyRating): StudyStep {
+  if (rating === "right") {
     return { submit: 4, done: true, meta };
   }
-
-  const looks = meta.looks + 1;
-  const capped = looks >= MAX_LOOKS;
-
-  if (rating === "zero") {
-    return {
-      submit: meta.zeroSubmitted ? null : 0,
-      done: capped,
-      meta: { looks, zeroSubmitted: true, pendingFuzzy: false },
-    };
-  }
-
-  if (capped) {
-    return {
-      submit: meta.zeroSubmitted ? null : 3,
-      done: true,
-      meta: { looks, zeroSubmitted: meta.zeroSubmitted, pendingFuzzy: true },
-    };
-  }
-
   return {
     submit: null,
     done: false,
-    meta: { looks, zeroSubmitted: meta.zeroSubmitted, pendingFuzzy: true },
+    meta: { wrongAttempts: meta.wrongAttempts + 1 },
   };
 }
 
-/** Hard (3) only if this round was Fuzzy and never Zero. */
-export function leaveQuality(meta: RecallMeta): 3 | null {
-  if (meta.pendingFuzzy && !meta.zeroSubmitted) return 3;
+/** Failed round: write a miss if the learner marked Wrong but never got Right. */
+export function leaveQuality(meta: StudyMeta): 0 | null {
+  if (meta.wrongAttempts > 0) return 0;
   return null;
 }
+
+/** @deprecated Use StudyRating */
+export type RecallRating = StudyRating;
+/** @deprecated Use StudyMeta */
+export type RecallMeta = StudyMeta;
+/** @deprecated Use EMPTY_STUDY_META */
+export const EMPTY_RECALL_META = EMPTY_STUDY_META;
+/** @deprecated Use StudyStep */
+export type RecallStep = StudyStep;
+/** @deprecated Use applyStudy */
+export const applyRecall = applyStudy;

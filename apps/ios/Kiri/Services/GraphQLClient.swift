@@ -8,7 +8,7 @@ enum GraphQLError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .unauthorized:
-            return "Not authenticated"
+            return "Please sign in again."
         case .requestFailed(let message):
             return message
         case .invalidResponse:
@@ -18,16 +18,16 @@ enum GraphQLError: Error, LocalizedError {
 }
 
 struct GraphQLClient {
-    static var baseURL: URL {
-        URL(string: ProcessInfo.processInfo.environment["KIRI_API_URL"] ?? "http://localhost:4000")!
-    }
-
-    func fetch<T: Decodable>(query: String, variables: [String: Any]? = nil) async throws -> T {
-        var request = URLRequest(url: GraphQLClient.baseURL.appendingPathComponent("graphql"))
+    func fetch<T: Decodable>(
+        query: String,
+        variables: [String: Any]? = nil,
+        as type: T.Type = T.self
+    ) async throws -> T {
+        var request = URLRequest(url: APIConfig.baseURL.appendingPathComponent("graphql"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        if let token = KeychainHelper.loadToken() {
+        if let token = SessionManager.shared.bearerToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
@@ -38,13 +38,22 @@ struct GraphQLClient {
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw GraphQLError.requestFailed("HTTP error")
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw GraphQLError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 401 {
+            await MainActor.run { SessionManager.shared.markSignedOut() }
+            throw GraphQLError.unauthorized
         }
 
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         if let errors = json?["errors"] as? [[String: Any]],
            let message = errors.first?["message"] as? String {
+            if message.localizedCaseInsensitiveContains("sign in") {
+                await MainActor.run { SessionManager.shared.markSignedOut() }
+                throw GraphQLError.unauthorized
+            }
             throw GraphQLError.requestFailed(message)
         }
 
@@ -58,32 +67,4 @@ struct GraphQLClient {
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         return try decoder.decode(T.self, from: payload)
     }
-
-    /// Stub: sync local deck cards to server via upsertCard mutation
-    func syncDeck(deckId: UUID, cards: [Card]) async throws {
-        for card in cards {
-            let mutation = """
-            mutation($deckId: String!, $frontText: String!, $backText: String!, $id: String) {
-              upsertCard(deckId: $deckId, frontText: $frontText, backText: $backText, id: $id) { id }
-            }
-            """
-            let _: UpsertResponse = try await fetch(
-                query: mutation,
-                variables: [
-                    "deckId": deckId.uuidString,
-                    "frontText": card.frontText,
-                    "backText": card.backText,
-                    "id": card.id.uuidString,
-                ]
-            )
-        }
-    }
-}
-
-private struct UpsertResponse: Decodable {
-    let upsertCard: UpsertCardResult
-}
-
-private struct UpsertCardResult: Decodable {
-    let id: String
 }

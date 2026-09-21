@@ -8,30 +8,66 @@
 
 /* Begin PBXBuildFile section */
 		A10000010000000000000001 /* KiriApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000001 /* KiriApp.swift */; };
-		A10000010000000000000002 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000002 /* Models.swift */; };
-		A10000010000000000000003 /* GraphQLClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000003 /* GraphQLClient.swift */; };
-		A10000010000000000000004 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000004 /* KeychainHelper.swift */; };
-		A10000010000000000000005 /* SM2Calculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000005 /* SM2Calculator.swift */; };
 		A10000010000000000000006 /* KatexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000006 /* KatexView.swift */; };
 		A10000010000000000000007 /* PencilCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000007 /* PencilCanvasView.swift */; };
 		A10000010000000000000008 /* CardEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000008 /* CardEditorView.swift */; };
 		A10000010000000000000009 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000009 /* ReviewView.swift */; };
 		A10000010000000000000010 /* DeckListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000010 /* DeckListView.swift */; };
 		A10000010000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000011 /* Assets.xcassets */; };
+		B10000010000000000000001 /* GraphQLClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000001 /* GraphQLClient.swift */; };
+		B10000010000000000000002 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000002 /* KeychainHelper.swift */; };
+		B10000010000000000000003 /* APIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000003 /* APIConfig.swift */; };
+		B10000010000000000000004 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000004 /* AuthService.swift */; };
+		B10000010000000000000005 /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000005 /* SessionManager.swift */; };
+		B10000010000000000000006 /* GraphQLOperations.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000006 /* GraphQLOperations.swift */; };
+		B10000010000000000000007 /* Repositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000007 /* Repositories.swift */; };
+		B10000010000000000000008 /* RecallQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000008 /* RecallQueue.swift */; };
+		B10000010000000000000009 /* ApkgImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000009 /* ApkgImportService.swift */; };
+		B10000010000000000000010 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000010 /* LoginView.swift */; };
+		B10000010000000000000011 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000011 /* RootView.swift */; };
+		B10000010000000000000012 /* DeckDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000012 /* DeckDetailView.swift */; };
+		B10000010000000000000013 /* ImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000013 /* ImportView.swift */; };
+		B10000010000000000000014 /* APIHealthChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000014 /* APIHealthChecker.swift */; };
+		B10000010000000000000015 /* StagingBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000015 /* StagingBannerView.swift */; };
+		B10000010000000000000016 /* KatexSegments.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000016 /* KatexSegments.swift */; };
+		B10000010000000000000017 /* DrawingToolState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000017 /* DrawingToolState.swift */; };
+		B10000010000000000000019 /* DrawingToolRail.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000019 /* DrawingToolRail.swift */; };
+		B1000001000000000000001A /* KiriTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001A /* KiriTheme.swift */; };
+        B1000001000000000000001B /* PaperBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001B /* PaperBackgroundView.swift */; };
+		B1000001000000000000001C /* NotebookEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001C /* NotebookEditorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A20000010000000000000001 /* KiriApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KiriApp.swift; sourceTree = "<group>"; };
-		A20000010000000000000002 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
-		A20000010000000000000003 /* GraphQLClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphQLClient.swift; sourceTree = "<group>"; };
-		A20000010000000000000004 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
-		A20000010000000000000005 /* SM2Calculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SM2Calculator.swift; sourceTree = "<group>"; };
 		A20000010000000000000006 /* KatexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KatexView.swift; sourceTree = "<group>"; };
 		A20000010000000000000007 /* PencilCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilCanvasView.swift; sourceTree = "<group>"; };
 		A20000010000000000000008 /* CardEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardEditorView.swift; sourceTree = "<group>"; };
 		A20000010000000000000009 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
 		A20000010000000000000010 /* DeckListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListView.swift; sourceTree = "<group>"; };
 		A20000010000000000000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B20000010000000000000001 /* GraphQLClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphQLClient.swift; sourceTree = "<group>"; };
+		B20000010000000000000002 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		B20000010000000000000003 /* APIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfig.swift; sourceTree = "<group>"; };
+		B20000010000000000000004 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		B20000010000000000000005 /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
+		B20000010000000000000006 /* GraphQLOperations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphQLOperations.swift; sourceTree = "<group>"; };
+		B20000010000000000000007 /* Repositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repositories.swift; sourceTree = "<group>"; };
+		B20000010000000000000008 /* RecallQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecallQueue.swift; sourceTree = "<group>"; };
+		B20000010000000000000009 /* ApkgImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApkgImportService.swift; sourceTree = "<group>"; };
+		B20000010000000000000010 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		B20000010000000000000011 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		B20000010000000000000012 /* DeckDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckDetailView.swift; sourceTree = "<group>"; };
+		B20000010000000000000013 /* ImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportView.swift; sourceTree = "<group>"; };
+		B20000010000000000000014 /* APIHealthChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIHealthChecker.swift; sourceTree = "<group>"; };
+		B20000010000000000000015 /* StagingBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StagingBannerView.swift; sourceTree = "<group>"; };
+		B20000010000000000000016 /* KatexSegments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KatexSegments.swift; sourceTree = "<group>"; };
+		B20000010000000000000017 /* DrawingToolState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingToolState.swift; sourceTree = "<group>"; };
+		B20000010000000000000019 /* DrawingToolRail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingToolRail.swift; sourceTree = "<group>"; };
+		B2000001000000000000001A /* KiriTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KiriTheme.swift; sourceTree = "<group>"; };
+		B2000001000000000000001B /* PaperBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperBackgroundView.swift; sourceTree = "<group>"; };
+		B2000001000000000000001C /* NotebookEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotebookEditorView.swift; sourceTree = "<group>"; };
+		B20000010000000000000020 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		B20000010000000000000021 /* Staging.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Staging.xcconfig; sourceTree = "<group>"; };
 		A30000010000000000000001 /* Kiri.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kiri.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -49,18 +85,28 @@
 		A50000010000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				B50000010000000000000001 /* Config */,
 				A50000010000000000000002 /* Kiri */,
 				A50000010000000000000003 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		B50000010000000000000001 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				B20000010000000000000020 /* Debug.xcconfig */,
+				B20000010000000000000021 /* Staging.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		A50000010000000000000002 /* Kiri */ = {
 			isa = PBXGroup;
 			children = (
 				A20000010000000000000001 /* KiriApp.swift */,
-				A50000010000000000000004 /* Models */,
 				A50000010000000000000005 /* Services */,
 				A50000010000000000000006 /* Views */,
+				B50000010000000000000002 /* Theme */,
 				A20000010000000000000011 /* Assets.xcassets */,
 			);
 			path = Kiri;
@@ -74,20 +120,21 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A50000010000000000000004 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				A20000010000000000000002 /* Models.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
 		A50000010000000000000005 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				A20000010000000000000003 /* GraphQLClient.swift */,
-				A20000010000000000000004 /* KeychainHelper.swift */,
-				A20000010000000000000005 /* SM2Calculator.swift */,
+				B20000010000000000000003 /* APIConfig.swift */,
+				B20000010000000000000014 /* APIHealthChecker.swift */,
+				B20000010000000000000016 /* KatexSegments.swift */,
+				B20000010000000000000017 /* DrawingToolState.swift */,
+				B20000010000000000000004 /* AuthService.swift */,
+				B20000010000000000000005 /* SessionManager.swift */,
+				B20000010000000000000001 /* GraphQLClient.swift */,
+				B20000010000000000000006 /* GraphQLOperations.swift */,
+				B20000010000000000000007 /* Repositories.swift */,
+				B20000010000000000000008 /* RecallQueue.swift */,
+				B20000010000000000000009 /* ApkgImportService.swift */,
+				B20000010000000000000002 /* KeychainHelper.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -95,13 +142,29 @@
 		A50000010000000000000006 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B20000010000000000000011 /* RootView.swift */,
+				B20000010000000000000015 /* StagingBannerView.swift */,
+				B20000010000000000000019 /* DrawingToolRail.swift */,
+				B20000010000000000000010 /* LoginView.swift */,
+				A20000010000000000000010 /* DeckListView.swift */,
+				B20000010000000000000012 /* DeckDetailView.swift */,
+				A20000010000000000000009 /* ReviewView.swift */,
+				B20000010000000000000013 /* ImportView.swift */,
+				A20000010000000000000008 /* CardEditorView.swift */,
 				A20000010000000000000006 /* KatexView.swift */,
 				A20000010000000000000007 /* PencilCanvasView.swift */,
-				A20000010000000000000008 /* CardEditorView.swift */,
-				A20000010000000000000009 /* ReviewView.swift */,
-				A20000010000000000000010 /* DeckListView.swift */,
+				B2000001000000000000001B /* PaperBackgroundView.swift */,
+				B2000001000000000000001C /* NotebookEditorView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		B50000010000000000000002 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				B2000001000000000000001A /* KiriTheme.swift */,
+			);
+			path = Theme;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -174,15 +237,32 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000010000000000000001 /* KiriApp.swift in Sources */,
-				A10000010000000000000002 /* Models.swift in Sources */,
-				A10000010000000000000003 /* GraphQLClient.swift in Sources */,
-				A10000010000000000000004 /* KeychainHelper.swift in Sources */,
-				A10000010000000000000005 /* SM2Calculator.swift in Sources */,
+				B10000010000000000000003 /* APIConfig.swift in Sources */,
+				B10000010000000000000014 /* APIHealthChecker.swift in Sources */,
+				B10000010000000000000016 /* KatexSegments.swift in Sources */,
+				B10000010000000000000017 /* DrawingToolState.swift in Sources */,
+				B10000010000000000000004 /* AuthService.swift in Sources */,
+				B10000010000000000000005 /* SessionManager.swift in Sources */,
+				B10000010000000000000001 /* GraphQLClient.swift in Sources */,
+				B10000010000000000000006 /* GraphQLOperations.swift in Sources */,
+				B10000010000000000000007 /* Repositories.swift in Sources */,
+				B10000010000000000000008 /* RecallQueue.swift in Sources */,
+				B10000010000000000000009 /* ApkgImportService.swift in Sources */,
+				B10000010000000000000002 /* KeychainHelper.swift in Sources */,
+				B10000010000000000000011 /* RootView.swift in Sources */,
+				B10000010000000000000015 /* StagingBannerView.swift in Sources */,
+				B10000010000000000000019 /* DrawingToolRail.swift in Sources */,
+				B1000001000000000000001A /* KiriTheme.swift in Sources */,
+				B10000010000000000000010 /* LoginView.swift in Sources */,
+				A10000010000000000000010 /* DeckListView.swift in Sources */,
+				B10000010000000000000012 /* DeckDetailView.swift in Sources */,
+				A10000010000000000000009 /* ReviewView.swift in Sources */,
+				B10000010000000000000013 /* ImportView.swift in Sources */,
+				A10000010000000000000008 /* CardEditorView.swift in Sources */,
 				A10000010000000000000006 /* KatexView.swift in Sources */,
 				A10000010000000000000007 /* PencilCanvasView.swift in Sources */,
-				A10000010000000000000008 /* CardEditorView.swift in Sources */,
-				A10000010000000000000009 /* ReviewView.swift in Sources */,
-				A10000010000000000000010 /* DeckListView.swift in Sources */,
+				B1000001000000000000001B /* PaperBackgroundView.swift in Sources */,
+				B1000001000000000000001C /* NotebookEditorView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -191,6 +271,7 @@
 /* Begin XCBuildConfiguration section */
 		AA0000010000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B20000010000000000000020 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
@@ -228,8 +309,30 @@
 			};
 			name = Release;
 		};
+		AA0000010000000000000005 /* Staging */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B20000010000000000000021 /* Staging.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG STAGING";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Staging;
+		};
 		AA0000010000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B20000010000000000000020 /* Debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -237,6 +340,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Kiri/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -261,6 +365,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Kiri/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -276,6 +381,32 @@
 			};
 			name = Release;
 		};
+		AA0000010000000000000006 /* Staging */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B20000010000000000000021 /* Staging.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Kiri/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kiri.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Staging;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -283,6 +414,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA0000010000000000000001 /* Debug */,
+				AA0000010000000000000005 /* Staging */,
 				AA0000010000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -292,6 +424,7 @@
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA0000010000000000000003 /* Debug */,
+				AA0000010000000000000006 /* Staging */,
 				AA0000010000000000000004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
