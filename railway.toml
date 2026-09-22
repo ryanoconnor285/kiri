@@ -1,7 +1,9 @@
 [build]
 builder = "RAILPACK"
 buildCommand = "pnpm --filter @kiri/schema build && pnpm --filter @kiri/db build && pnpm --filter @kiri/api build"
-watchPatterns = ["apps/api/**", "packages/**", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "railpack.json"]
+# Watch paths: configure per service in Railway (see docs/railway-deploy.md).
+# Repo-root watchPatterns here also applied to the web Docker service and caused
+# "No changes to watched files" when only apps/web changed.
 
 [deploy]
 startCommand = "node apps/api/dist/index.js"
