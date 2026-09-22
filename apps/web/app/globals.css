@@ -84,9 +84,30 @@ a:hover {
 }
 
 .container {
+  width: 100%;
   max-width: 960px;
-  margin: 0 auto;
+  margin-inline: auto;
   padding: 1.25rem 1rem calc(1.5rem + var(--safe-bottom));
+}
+
+/* Stale bundles may still render app-shell; keep /decks full-width and centered */
+.app-shell {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+.app-sidebar {
+  display: none !important;
+}
+
+.app-main.container {
+  width: 100%;
+  max-width: 960px;
+  margin-inline: auto;
+  padding: 0;
 }
 
 .card {
