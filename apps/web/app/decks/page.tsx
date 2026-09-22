@@ -127,26 +127,30 @@ export default function DecksPage() {
             <Link href={`/decks/${deck.id}`} className="tree-title">
               {deck.title}
             </Link>
-            <span className="muted" style={{ fontSize: "0.85rem" }}>
-              {deck.cardCount ?? 0} cards
-              {hasKids ? ` · ${kids.length} sub` : ""}
-            </span>
-            {(deck.dueCount ?? 0) > 0 && (
-              <span className="due-badge">{deck.dueCount} ready</span>
-            )}
-            <Link href={`/decks/${deck.id}/study`} className="btn btn-primary">
-              Study
-            </Link>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => {
-                setAddingChildFor(addingChildFor === deck.id ? null : deck.id);
-                setChildTitle("");
-              }}
-            >
-              + Subfolder
-            </button>
+            <div className="tree-row-meta">
+              <span className="muted" style={{ fontSize: "0.85rem" }}>
+                {deck.cardCount ?? 0} cards
+                {hasKids ? ` · ${kids.length} sub` : ""}
+              </span>
+              {(deck.dueCount ?? 0) > 0 && (
+                <span className="due-badge">{deck.dueCount} ready</span>
+              )}
+            </div>
+            <div className="tree-row-actions">
+              <Link href={`/decks/${deck.id}/study`} className="btn btn-primary">
+                Study
+              </Link>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setAddingChildFor(addingChildFor === deck.id ? null : deck.id);
+                  setChildTitle("");
+                }}
+              >
+                + Subfolder
+              </button>
+            </div>
           </div>
 
           {addingChildFor === deck.id && (
@@ -285,7 +289,7 @@ export default function DecksPage() {
           Decks &amp; study
         </p>
       </aside>
-      <div className="app-main container" style={{ maxWidth: "none", margin: 0 }}>
+      <div className="app-main container">
         {mainContent}
       </div>
     </div>
