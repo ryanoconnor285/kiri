@@ -18,14 +18,20 @@ export function FitCardBody({
     const outer = outerRef.current;
     const inner = innerRef.current;
     if (!outer || !inner) return;
-    const available = outer.clientHeight;
-    const needed = inner.scrollHeight;
-    if (available <= 0 || needed <= 0) {
+    const availableH = outer.clientHeight;
+    const availableW = outer.clientWidth;
+    const neededH = inner.scrollHeight;
+    const neededW = inner.scrollWidth;
+    if (availableH <= 0 || availableW <= 0 || neededH <= 0 || neededW <= 0) {
       setTransform("none");
       return;
     }
-    const scale = Math.max(0.4, Math.min(1, available / needed));
-    const offsetY = scale >= 0.999 ? Math.max(0, (available - needed) / 2) : 0;
+    const scale = Math.max(
+      0.4,
+      Math.min(1, availableH / neededH, availableW / neededW),
+    );
+    const offsetY =
+      scale >= 0.999 ? Math.max(0, (availableH - neededH) / 2) : 0;
     setTransform(`translateY(${offsetY}px) scale(${scale})`);
   }, []);
 

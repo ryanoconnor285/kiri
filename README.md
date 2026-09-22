@@ -145,6 +145,11 @@ entirely:
    monorepo root).
 4. **Settings → Networking → Generate Domain** for both the web service and the API
    service (the API needs a public domain too).
+5. **Settings → Source:** point the web service at the same branch as staging
+   (e.g. `staging`). Root `railway.toml` **watch paths are API-only**; the web
+   service still redeploys on push when its branch updates, but it is a **separate**
+   deployment from the API — confirm both services show a new deploy after frontend
+   changes (View Source → `/_next/static/css/*.css` should change hash).
 
 `next start` binds to Railway's `$PORT` automatically. `NEXT_PUBLIC_API_URL` is a
 build-time variable — the Dockerfile reads it as a build arg (Railway passes

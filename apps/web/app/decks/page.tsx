@@ -281,17 +281,5 @@ export default function DecksPage() {
     </>
   );
 
-  return (
-    <div className="app-shell">
-      <aside className="app-sidebar" aria-label="Navigation">
-        <p className="app-sidebar-title">Kiri</p>
-        <p className="muted" style={{ fontSize: "0.875rem" }}>
-          Decks &amp; study
-        </p>
-      </aside>
-      <div className="app-main container">
-        {mainContent}
-      </div>
-    </div>
-  );
+  return <div className="container">{mainContent}</div>;
 }
