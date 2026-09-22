@@ -1,0 +1,19 @@
+---
+description: Default git workflow — commit and push to staging without waiting for an explicit ask
+alwaysApply: true
+---
+
+# Staging git workflow
+
+This repo uses **`staging`** for Railway staging ( **`main`** is production).
+
+After completing a task that changes the repo:
+
+1. **Commit** when the work is coherent and ready to ship to staging (do not leave finished fixes uncommitted unless the user asked for local-only or review-first).
+2. **Push to `origin staging`** by default — do not wait for the user to say “push” or “commit and push.”
+3. Work on **`staging`** or merge feature branches into **`staging`** before pushing; do not push layout/feature work to **`main`** unless the user asks.
+4. Do **not** force-push. Do not skip hooks. Do not push secrets (`.env`, credentials).
+
+If the user says “don’t push” or “local only,” skip the push for that task.
+
+After pushing web or API changes, briefly remind them that Railway’s **web** and **API** are separate services and both may need a deploy to show up on staging.
