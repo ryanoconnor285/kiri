@@ -85,6 +85,15 @@ enum GraphQLOperations {
     }
     """
 
+    static let importPastedTextMutation = """
+    mutation($deckId: String!, $rawText: String!) {
+      importPastedText(deckId: $deckId, rawText: $rawText) {
+        importedCount
+        format
+      }
+    }
+    """
+
     static let deleteCardMutation = """
     mutation($id: String!) {
       deleteCard(id: $id)

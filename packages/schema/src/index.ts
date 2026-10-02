@@ -42,6 +42,14 @@ export const ReviewQualitySchema = z.union([
 export type ReviewQuality = z.infer<typeof ReviewQualitySchema>;
 
 export {
+  formatMcImportPreviewBack,
+  mcImportToFieldValues,
+  parseMultipleChoiceImport,
+  type McImportFieldValues,
+  type ParsedMcImport,
+} from "./mc-import.js";
+
+export {
   appendSearchToken,
   folderIdToken,
   normalizeCardTextForDuplicate,

@@ -11,7 +11,13 @@ import {
   notes,
   reviewStates,
 } from "@kiri/db";
-import { AiImportInputSchema, stubAiImport } from "@kiri/schema";
+import {
+  AiImportInputSchema,
+  formatMcImportPreviewBack,
+  parseMultipleChoiceImport,
+  stubAiImport,
+} from "@kiri/schema";
+import { importPastedText } from "../collection-notes/import-pasted-text.js";
 import { GraphQLError } from "graphql";
 import { and, asc, count, desc, eq, inArray, lte, max, sql } from "drizzle-orm";
 import {
@@ -445,6 +451,18 @@ AiImportResultType.implement({
       type: [CardPayloadType],
       resolve: (parent) => parent.cards,
     }),
+  }),
+});
+
+const ImportPastedTextResultType = builder.objectRef<{
+  importedCount: number;
+  format: string;
+}>("ImportPastedTextResult");
+
+ImportPastedTextResultType.implement({
+  fields: (t) => ({
+    importedCount: t.exposeInt("importedCount"),
+    format: t.exposeString("format"),
   }),
 });
 
@@ -1385,6 +1403,19 @@ builder.mutationType({
           throw new Error("Invalid import input");
         }
 
+        const mc = parseMultipleChoiceImport(parsed.data.raw_text);
+        if (mc.length > 0) {
+          return {
+            cards: mc.map((note) => ({
+              frontText: note.question,
+              backText: formatMcImportPreviewBack(note),
+              frontPencilData: null,
+              backPencilData: null,
+            })),
+            normalizedCount: mc.length,
+          };
+        }
+
         const imported = stubAiImport(parsed.data.raw_text);
         return {
           cards: imported.map((card) => ({
@@ -1395,6 +1426,17 @@ builder.mutationType({
           })),
           normalizedCount: imported.length,
         };
+      },
+    }),
+    importPastedText: t.field({
+      type: ImportPastedTextResultType,
+      args: {
+        deckId: t.arg.string({ required: true }),
+        rawText: t.arg.string({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return importPastedText(context, user.userId, args.deckId, args.rawText);
       },
     }),
     createNote: t.field({

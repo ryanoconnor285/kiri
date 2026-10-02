@@ -90,14 +90,7 @@ struct ImportView: View {
         error = nil
         defer { saving = false }
         do {
-            for card in preview {
-                _ = try await cardRepo.upsertCard(
-                    deckId: deckId,
-                    id: nil,
-                    frontText: card.frontText,
-                    backText: card.backText
-                )
-            }
+            _ = try await cardRepo.importPastedText(deckId: deckId, rawText: rawText)
             dismiss()
         } catch let err {
             self.error = err.localizedDescription

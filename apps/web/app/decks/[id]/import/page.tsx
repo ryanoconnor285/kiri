@@ -3,7 +3,11 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { stubAiImport } from "@kiri/schema";
+import {
+  formatMcImportPreviewBack,
+  parseMultipleChoiceImport,
+  stubAiImport,
+} from "@kiri/schema";
 import { CardFace } from "@/components/CardFace";
 import { gqlFetch } from "@/lib/graphql";
 import { uploadApkg } from "@/lib/import-apkg";
@@ -13,6 +17,8 @@ type ImportedCard = {
   frontText: string;
   backText: string;
 };
+
+type ImportFormat = "qa" | "multiple_choice";
 
 type ApkgProgress =
   | { phase: "idle" }
@@ -25,6 +31,7 @@ export default function ImportPage() {
   const router = useRouter();
   const [rawText, setRawText] = useState("");
   const [preview, setPreview] = useState<ImportedCard[]>([]);
+  const [importFormat, setImportFormat] = useState<ImportFormat>("qa");
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [apkgName, setApkgName] = useState<string | null>(null);
@@ -46,14 +53,25 @@ export default function ImportPage() {
 
   function handlePreview() {
     setError(null);
-    const imported = stubAiImport(rawText).map((card) => ({
-      frontText: card.front_text,
-      backText: card.back_text,
-    }));
-    setPreview(imported);
-    if (imported.length === 0) {
+    const mc = parseMultipleChoiceImport(rawText);
+    let nextPreview: ImportedCard[] = [];
+    if (mc.length > 0) {
+      setImportFormat("multiple_choice");
+      nextPreview = mc.map((note) => ({
+        frontText: note.question,
+        backText: formatMcImportPreviewBack(note),
+      }));
+    } else {
+      setImportFormat("qa");
+      nextPreview = stubAiImport(rawText).map((card) => ({
+        frontText: card.front_text,
+        backText: card.back_text,
+      }));
+    }
+    setPreview(nextPreview);
+    if (nextPreview.length === 0) {
       setError(
-        "No cards found. Put the question on the first line and the answer on the next line(s), with a blank line between cards — or use Front | Back on one line.",
+        "No cards found. Use Q/A blocks (blank line between cards), Front | Back, or Multiple choice blocks (Question / Choices / Correct).",
       );
       return;
     }
@@ -67,20 +85,15 @@ export default function ImportPage() {
     setSaving(true);
     setError(null);
     try {
-      for (const card of preview) {
-        await gqlFetch(
-          `mutation($deckId: String!, $frontText: String!, $backText: String!) {
-            upsertCard(deckId: $deckId, frontText: $frontText, backText: $backText) {
-              id
-            }
-          }`,
-          {
-            deckId: params.id,
-            frontText: card.frontText,
-            backText: card.backText,
-          },
-        );
-      }
+      await gqlFetch<{ importPastedText: { importedCount: number; format: string } }>(
+        `mutation($deckId: String!, $rawText: String!) {
+          importPastedText(deckId: $deckId, rawText: $rawText) {
+            importedCount
+            format
+          }
+        }`,
+        { deckId: params.id, rawText },
+      );
       router.push(`/decks/${params.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
@@ -243,6 +256,11 @@ export default function ImportPage() {
               Optional labels: <code>Front: …</code> and <code>Back: …</code> in the same block.
             </li>
             <li>
+              <strong>Multiple choice blocks:</strong> <code>Question:</code>,{" "}
+              <code>Choices:</code> (one per line), <code>Correct:</code> (0-based indices), optional{" "}
+              <code>AllowMultiple: yes</code> — blank line between notes.
+            </li>
+            <li>
               Inline math: <code>$\\Delta H &lt; 0$</code> inside a sentence.
             </li>
             <li>
@@ -277,7 +295,11 @@ export default function ImportPage() {
             </button>
             {preview.length > 0 && (
               <button className="btn btn-secondary" onClick={handleSave} disabled={saving}>
-                {saving ? "Saving..." : `Save ${preview.length} cards`}
+                {saving
+                  ? "Saving..."
+                  : importFormat === "multiple_choice"
+                    ? `Save ${preview.length} multiple-choice notes`
+                    : `Save ${preview.length} cards`}
               </button>
             )}
           </div>
@@ -289,10 +311,12 @@ export default function ImportPage() {
           <div className="grid" ref={previewRef}>
             {preview.map((card, index) => (
               <div key={index} className="card flashcard flashcard-preview">
-                <p className="flashcard-label">Front</p>
+                <p className="flashcard-label">
+                  {importFormat === "multiple_choice" ? "Question" : "Front"}
+                </p>
                 <CardFace text={card.frontText} />
                 <p className="flashcard-label" style={{ marginTop: "1rem" }}>
-                  Back
+                  {importFormat === "multiple_choice" ? "Answer key" : "Back"}
                 </p>
                 <CardFace text={card.backText} />
               </div>

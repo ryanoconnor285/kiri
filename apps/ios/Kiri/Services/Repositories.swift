@@ -143,6 +143,22 @@ struct CardRepository {
             )
         }
     }
+
+    func importPastedText(deckId: String, rawText: String) async throws -> Int {
+        struct Response: Decodable {
+            let importPastedText: ImportResult
+        }
+        struct ImportResult: Decodable {
+            let importedCount: Int
+            let format: String
+        }
+        let data = try await client.fetch(
+            query: GraphQLOperations.importPastedTextMutation,
+            variables: ["deckId": deckId, "rawText": rawText],
+            as: Response.self
+        )
+        return data.importPastedText.importedCount
+    }
 }
 
 struct NoteListDTO: Identifiable, Codable, Hashable {
