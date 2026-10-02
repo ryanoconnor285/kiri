@@ -216,9 +216,10 @@ export default function ImportPage() {
         <section className="card stack">
           <h2 style={{ fontSize: "1rem" }}>From text</h2>
           <p>
-            <strong>Kiri does not generate cards.</strong> It only parses strict Q/A text.
-            Paste lecture notes into ChatGPT or Claude with the prompt below, then paste the
-            result here and preview before saving.
+            Kiri does not generate cards itself. Copy the prompt below into ChatGPT or Claude,
+            add your notes at the bottom, then paste the model&apos;s output here. The AI chooses
+            what to test; the prompt only defines the text layout Kiri can import (including
+            optional multiple choice).
           </p>
           <ol className="import-steps muted">
             <li>Copy raw notes (lecture slide text, textbook excerpt, messy outline).</li>
@@ -241,43 +242,31 @@ export default function ImportPage() {
             <pre className="import-prompt-preview">{KIRI_IMPORT_PROMPT}</pre>
           </details>
           <p className="muted" style={{ marginBottom: "0.25rem" }}>
-            What Kiri accepts (AI output must match):
+            Format rules (content is up to the AI):
           </p>
           <ul className="import-rules muted">
             <li>
-              <strong>Blank line between every card</strong> — lists without blank lines import
-              as one broken card.
+              <strong>Blank line</strong> between each basic card or each multiple-choice note.
             </li>
             <li>
-              <strong>Front on line 1, back on following lines</strong> — or{" "}
-              <code>Term | definition</code> one card per line.
+              <strong>Basic:</strong> prompt line, then answer lines — or <code>Term | definition</code>.
             </li>
             <li>
-              Optional labels: <code>Front: …</code> and <code>Back: …</code> in the same block.
+              <strong>Multiple choice:</strong> <code>Question:</code>, <code>Choices:</code> (one per
+              line), <code>Correct:</code> (0-based indices), <code>AllowMultiple: yes/no</code>.
             </li>
             <li>
-              <strong>Multiple choice blocks:</strong> <code>Question:</code>,{" "}
-              <code>Choices:</code> (one per line), <code>Correct:</code> (0-based indices), optional{" "}
-              <code>AllowMultiple: yes</code> — blank line between notes.
-            </li>
-            <li>
-              Inline math: <code>$\\Delta H &lt; 0$</code> inside a sentence.
-            </li>
-            <li>
-              Standalone equation line: bare <code>S = k\\ln W</code> or{" "}
-              <code>$$S = k\\ln W$$</code> (full back/front).
-            </li>
-            <li>
-              One fact per card — ask the AI to split dense notes into many short recall prompts.
+              <strong>Math:</strong> plain English outside <code>$...$</code>; only formulas/symbols
+              inside dollars. Full-line equations use <code>$$...$$</code>. Avoid Unicode subscripts.
             </li>
           </ul>
           <p className="muted" style={{ marginBottom: "0.25rem" }}>
-            Common AI mistakes (won’t parse):
+            Common paste mistakes:
           </p>
           <ul className="import-rules muted">
-            <li>Markdown headings, “Card 1:”, or numbered lists with no blank lines</li>
-            <li>Intro text like “Here are 12 flashcards based on your notes”</li>
-            <li>Wrapping the whole output in a ``` code block</li>
+            <li>Markdown headings, “Card 1:”, or lists with no blank lines between cards</li>
+            <li>Intro/outro text or wrapping the output in a code block</li>
+            <li>Entire questions wrapped in <code>$...$</code> (hard to read in Kiri)</li>
           </ul>
           <textarea
             className="input textarea"

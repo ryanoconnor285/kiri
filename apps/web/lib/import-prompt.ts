@@ -2,59 +2,60 @@
 export const KIRI_IMPORT_EXAMPLE = `What lowers enthalpy ($\\Delta H < 0$)?
 Protonating $R-O^{-}$ to $R-OH$ (stronger O–H bond).
 
-What raises entropy ($\\Delta S > 0$)?
-Cleaving a polymer into monomer units.
+Question: Which change increases entropy? Check all that apply.
 
-Methionine | Met (M at protein termini)`;
+Choices:
+Cleaving a polymer into monomer units
+Folding a protein into a compact globule
+Mixing two ideal gases
 
-export const KIRI_IMPORT_PROMPT = `Convert the notes below into flashcards for Kiri (STEM / pre-med recall practice).
+Correct: 0
 
-OUTPUT — follow exactly or import will fail:
-• Output ONLY the cards. No intro, no outro, no "Here are your cards", no markdown headings.
-• Do NOT wrap the cards in a code block.
-• One blank line between cards (required).
-• Each card: first line = front (prompt). All following lines until the blank line = back (answer).
+AllowMultiple: no`;
 
-CARD DESIGN:
-• One testable idea per card — split dense notes into many small cards.
-• Front: a short retrieval question or cue (prefer ending with "?").
-• Back: the shortest answer that confirms recall (term, value, mechanism step, etc.).
-• Do not put front and back on the same line unless using "Front | Back" (see below).
+export const KIRI_IMPORT_PROMPT = `Format the material below for import into Kiri (flashcard app).
 
-MATH / CHEMISTRY (KaTeX):
-• Inline math inside a sentence: single dollars, e.g. When is $\\Delta H < 0$?
-• Standalone equation as the whole back (or front): either bare text (S = k\\ln W) OR display dollars ($$S = k\\ln W$$) — both work.
-• Use $$...$$ (or bare formula) for a full-line equation; use $...$ only for math inside prose.
-• Prefer $H_2SO_4$ over Unicode subscripts. Keep normal spaces between English words.
+YOU decide the content: what to test, how many items, basic Q&A vs multiple choice, and how much to split or combine. The only requirement is that your reply uses one of the exact text layouts below so Kiri can parse it.
 
-ALLOWED FORMATS (pick one style and stay consistent):
+HOW KIRI SHOWS TEXT (read this so math pastes correctly):
+• Kiri is not a LaTeX document. It shows normal typing for plain text and uses KaTeX only inside math delimiters.
+• Write English (or labels) as normal characters. Do not wrap whole questions or answers in $...$.
+• Put ONLY the symbolic part in dollars: e.g. When $\\Delta H < 0$ the reaction is exothermic.
+• Full line that is mostly an equation: use $$...$$ on that line alone, or a short bare formula line like S = k \\ln W.
+• In your output, use single backslashes in LaTeX (\\Delta, \\alpha, \\ln). Do not double-escape for JSON or code.
+• Avoid Unicode sub/superscripts (H₂O, x²) in import text; use $H_2O$ or plain words instead.
+• Do not mention KaTeX, LaTeX, or rendering in the output—only the card text.
 
-A) Question + answer (preferred)
+STRICT OUTPUT RULES:
+• Output ONLY the import text. No intro, no outro, no commentary, no markdown headings, no \`\`\` fences.
+• One blank line between each card or each multiple-choice note.
+
+FORMAT 1 — Basic question and answer (most common)
+Line 1 = prompt (question or cue). Following lines until the blank line = answer.
+
 What is the one-letter code for methionine?
 Met (M at protein termini)
 
-B) Labelled lines (within one card block)
-Front: What product forms when $S_N2$ attacks primary alkyl halides?
-Back: Inverted substitution product ($R-$Nu with inverted stereochemistry).
+Alternatives that also parse:
+• Front: … / Back: … on separate lines in the same block
+• One line per card: Term | definition
 
-C) One line per card (good for vocab)
-Methionine | Met (M at protein termini)
-Glycine | Gly (G)
+FORMAT 2 — Multiple choice (use when options and “check all that apply” fit the material)
+Repeat this block for each question; blank line between blocks.
 
-NEVER DO:
-• Numbered/bulleted lists without a blank line between each card
-• "Card 1:", "###", or other markdown structure
-• A single paragraph of notes with no line breaks
-• Commentary ("Note:", "Explanation:", "Source:") outside the back text
+Question: (stem; may include inline $...$ math)
 
-Example output:
+Choices:
+(first choice; optional leading 0. or 1.)
+(second choice, one per line)
+…
 
-What lowers enthalpy ($\\Delta H < 0$)?
-Protonating $R-O^{-}$ to $R-OH$ (stronger O–H bond).
+Correct: 0,2,3
+(comma-separated indices, 0 = first choice line)
 
-What raises entropy ($\\Delta S > 0$)?
-Cleaving a polymer into monomer units.
+AllowMultiple: yes
+(use yes when more than one index is correct; no for single-select)
 
-Notes to convert:
+NOTES TO CONVERT:
 (paste below)
 `;

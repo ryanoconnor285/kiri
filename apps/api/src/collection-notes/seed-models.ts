@@ -51,7 +51,13 @@ export async function ensureBuiltinNoteModels(db: Database, userId: string) {
       .from(noteModels)
       .where(and(eq(noteModels.userId, userId), eq(noteModels.builtinSlug, builtin.slug)))
       .limit(1);
-    if (existing) continue;
+    if (existing) {
+      await db
+        .update(noteModels)
+        .set({ css: builtin.css })
+        .where(eq(noteModels.id, existing.id));
+      continue;
+    }
     await insertModelFromBuiltin(db, userId, builtin);
   }
 }

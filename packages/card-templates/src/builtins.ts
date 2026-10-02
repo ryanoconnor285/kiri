@@ -125,10 +125,10 @@ export const BUILTIN_NOTE_MODELS: BuiltinNoteModel[] = [
     slug: "multiple-choice",
     name: "Multiple choice",
     kind: "multiple_choice",
-    css: `.kiri-mc-option { display: block; width: 100%; text-align: left; margin: 0.35rem 0; padding: 0.65rem 0.75rem; border-radius: 10px; border: 1px solid var(--border, #ccc); }
-.kiri-mc-option.is-selected { background: #dbeafe; border-color: #3b82f6; }
-.kiri-mc-option.is-correct { background: #dcfce7; border-color: #22c55e; }
-.kiri-mc-option.is-incorrect { background: #fee2e2; border-color: #ef4444; opacity: 0.85; }`,
+    css: `.kiri-mc-option { margin: 0.35rem 0; }
+.kiri-mc-option.is-selected { background: color-mix(in srgb, var(--accent, #0e6f7a) 22%, var(--surface, #fff)); border-color: var(--accent, #0e6f7a); color: var(--text, #1d1d1f); }
+.kiri-mc-option.is-correct { background: color-mix(in srgb, var(--success, #4faf7b) 24%, var(--surface, #fff)); border-color: var(--success, #4faf7b); color: var(--text, #1d1d1f); }
+.kiri-mc-option.is-incorrect { background: color-mix(in srgb, var(--danger, #c45c5c) 18%, var(--surface, #fff)); border-color: var(--danger, #c45c5c); color: var(--text, #1d1d1f); }`,
     fields: [
       { name: "Question", ord: 0, isSort: true },
       { name: "Choices", ord: 1 },

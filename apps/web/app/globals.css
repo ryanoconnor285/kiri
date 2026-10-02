@@ -1061,22 +1061,30 @@ a:hover {
   cursor: pointer;
   font-size: 0.95rem;
   line-height: 1.35;
+  opacity: 1;
+}
+
+.kiri-mc-option:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
 }
 
 .kiri-mc-option.is-selected {
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
   border-color: var(--accent);
+  color: var(--text);
+  font-weight: 500;
 }
 
 .kiri-mc-option.is-correct {
-  background: color-mix(in srgb, var(--success) 18%, var(--surface));
+  background: color-mix(in srgb, var(--success) 24%, var(--surface));
   border-color: var(--success);
+  color: var(--text);
 }
 
 .kiri-mc-option.is-incorrect {
-  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  background: color-mix(in srgb, var(--danger) 18%, var(--surface));
   border-color: var(--danger);
-  opacity: 0.9;
+  color: var(--text);
 }
 
 .kiri-type-in-input {

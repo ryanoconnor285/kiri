@@ -75,6 +75,7 @@ struct MultipleChoiceStudyView: View {
                 Image(systemName: boxIcon(isSelected: isSelected))
                     .foregroundStyle(isCorrect ? KiriTheme.success(colorScheme) : .primary)
                 Text(choices[choiceIndex])
+                    .foregroundStyle(.primary)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -100,8 +101,8 @@ struct MultipleChoiceStudyView: View {
             return KiriTheme.danger(colorScheme).opacity(0.12)
         }
         if isSelected {
-            return KiriTheme.accent(colorScheme).opacity(0.12)
+            return KiriTheme.accent(colorScheme).opacity(colorScheme == .dark ? 0.28 : 0.14)
         }
-        return KiriTheme.border(colorScheme).opacity(0.25)
+        return KiriTheme.surfaceSecondary(colorScheme)
     }
 }
