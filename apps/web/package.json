@@ -3,15 +3,16 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "predev": "pnpm --filter @kiri/schema build",
+    "predev": "pnpm --filter @kiri/schema build && pnpm --filter @kiri/card-templates build",
+    "prebuild": "pnpm --filter @kiri/schema build && pnpm --filter @kiri/card-templates build",
     "dev": "next dev --port 3000",
-    "prebuild": "pnpm --filter @kiri/schema build",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "tsx --test lib/katex-segments.test.ts lib/recall-queue.test.ts lib/deck-tree.test.ts"
   },
   "dependencies": {
+    "@kiri/card-templates": "workspace:*",
     "@kiri/schema": "workspace:*",
     "better-auth": "^1.2.9",
     "dompurify": "^3.2.6",

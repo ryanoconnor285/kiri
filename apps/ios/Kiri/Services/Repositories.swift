@@ -290,6 +290,32 @@ struct BrowseCardDTO: Identifiable, Codable, Hashable {
     let updatedAt: String
 }
 
+struct CardStudyRenderDTO: Codable {
+    let cardId: String
+    let studyMode: String
+    let frontHtml: String
+    let backHtml: String
+    let modelCss: String
+    let typeInField: String?
+    let mcChoices: [String]?
+    let mcAllowMultiple: Bool?
+    let mcCorrectIndices: [Int]?
+}
+
+struct StudyRenderRepository {
+    private let client = GraphQLClient()
+
+    func fetchRender(cardId: String, revealed: Bool) async throws -> CardStudyRenderDTO? {
+        struct Response: Decodable { let cardStudyRender: CardStudyRenderDTO? }
+        let data = try await client.fetch(
+            query: GraphQLOperations.cardStudyRenderQuery,
+            variables: ["cardId": cardId, "revealed": revealed],
+            as: Response.self
+        )
+        return data.cardStudyRender
+    }
+}
+
 struct BrowseRepository {
     private let client = GraphQLClient()
 

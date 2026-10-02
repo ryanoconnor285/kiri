@@ -1,5 +1,5 @@
 {
-  "name": "@kiri/apkg",
+  "name": "@kiri/card-templates",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -15,16 +15,9 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "tsc --noEmit",
-    "test": "tsx --test src/parse.test.ts"
-  },
-  "dependencies": {
-    "@kiri/card-templates": "workspace:*",
-    "@kiri/schema": "workspace:*",
-    "jszip": "^3.10.1",
-    "sql.js": "^1.13.0"
+    "test": "tsx --test src/templates.test.ts src/generate.test.ts src/multiple-choice.test.ts"
   },
   "devDependencies": {
-    "@types/sql.js": "^1.4.9",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }

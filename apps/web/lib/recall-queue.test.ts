@@ -13,6 +13,7 @@ test("Wrong stays in the hopper without writing SM-2", () => {
   assert.equal(step.submit, null);
   assert.equal(step.done, false);
   assert.equal(step.meta.wrongAttempts, 1);
+  assert.equal(step.meta.presentations, 1);
 });
 
 test("Wrong then Right still submits Good only once", () => {

@@ -1034,6 +1034,55 @@ a:hover {
   margin: 0;
 }
 
+.kiri-mc-shell {
+  width: 100%;
+  max-width: 42rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.kiri-mc-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.kiri-mc-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.kiri-mc-option.is-selected {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  border-color: var(--accent);
+}
+
+.kiri-mc-option.is-correct {
+  background: color-mix(in srgb, var(--success) 18%, var(--surface));
+  border-color: var(--success);
+}
+
+.kiri-mc-option.is-incorrect {
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  border-color: var(--danger);
+  opacity: 0.9;
+}
+
+.kiri-type-in-input {
+  margin-top: 0.75rem;
+}
+
 @media (max-width: 960px) {
   .browse-grid {
     grid-template-columns: 1fr;

@@ -10,7 +10,8 @@ Both clients talk to the same GraphQL API and Better Auth endpoints. Keep this t
 | Browse | `/browse` (shortcut **B**) | `BrowseView` | `searchCards`, `moveCards`, `setCardsSuspended`, `setCardsFlag`, tags, saved searches, `findReplaceCards`, `duplicateCardGroups`, `resetCards`, `setCardsDueDate` |
 | Folder detail | `/decks/[id]` | `DeckDetailView` | `cards`, `notes`, `createDeck(parentId)`, `upsertCard`, `deleteCard`, `deleteDeck` |
 | Notebooks | folder page (list only) | `NotebookEditorView` | `notes`, `note`, `createNote`, `updateNote`, `upsertNotePage`, `addNotePage`, `deleteNotePage` |
-| Study | `/decks/[id]/study` | `StudyView` | `dueCards`, `submitReview` |
+| Study | `/decks/[id]/study` | `StudyView` (`ReviewView.swift`) | `dueCards`, `submitReview`, `cardStudyRender` |
+| Note types / add note | `/note-types`, `/decks/[id]/add-note` | — (web only for now) | `noteModels`, `upsertCollectionNote`, `regenerateCollectionNoteCards` |
 | Text import | `/decks/[id]/import` | `ImportView` | `aiImportCards`, batch `upsertCard` |
 | Anki import | `/decks/[id]/import` | `ImportView` | `POST /api/import/apkg?deckId=` |
 | Card pencil editor | — (web text only) | `CardEditorView` (iPad) | `upsertCard` + base64 pencil fields |
@@ -30,8 +31,10 @@ Logic must match between:
 - [`apps/ios/Kiri/Services/RecallQueue.swift`](../apps/ios/Kiri/Services/RecallQueue.swift)
 
 - **Right** → SM-2 quality 4, card leaves the session queue.
-- **Wrong** → no immediate write; card moves to the **back** of the session queue.
+- **Wrong** → no immediate write; card moves to the **back** of the session queue; `presentations` increments (reshuffles multiple-choice options).
 - **Leave** with cards still queued after at least one Wrong → quality 0 for those cards.
+
+**Multiple choice** notes use `cardStudyRender` (`studyMode: MULTIPLE_CHOICE`). Options shuffle with the same LCG seed as `@kiri/card-templates` `shuffleIndices(presentations)`. Correct indices only when `revealed: true`. See [note-types.md](./note-types.md).
 
 ## Notebooks (paged)
 

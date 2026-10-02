@@ -7,6 +7,7 @@ enum StudyRating {
 
 struct StudyMeta {
     var wrongAttempts: Int = 0
+    var presentations: Int = 0
 }
 
 struct StudyStep {
@@ -24,7 +25,10 @@ enum StudyQueue {
             return StudyStep(
                 submit: nil,
                 done: false,
-                meta: StudyMeta(wrongAttempts: meta.wrongAttempts + 1)
+                meta: StudyMeta(
+                    wrongAttempts: meta.wrongAttempts + 1,
+                    presentations: meta.presentations + 1
+                )
             )
         }
     }

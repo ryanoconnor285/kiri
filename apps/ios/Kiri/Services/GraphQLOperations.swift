@@ -223,4 +223,23 @@ enum GraphQLOperations {
     static let tagsQuery = """
     query { tags { id name } }
     """
+
+    static let cardStudyRenderQuery = """
+    query($cardId: String!, $revealed: Boolean) {
+      cardStudyRender(cardId: $cardId, revealed: $revealed) {
+        cardId studyMode frontHtml backHtml modelCss typeInField
+        mcChoices mcAllowMultiple mcCorrectIndices
+      }
+    }
+    """
+
+    static let noteModelsQuery = """
+    query {
+      noteModels {
+        id name kind css builtinSlug
+        fields { name ord }
+        templates { ord name qfmt afmt }
+      }
+    }
+    """
 }

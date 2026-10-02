@@ -13,6 +13,18 @@ export type ParsedApkg = {
   skippedCount: number;
 };
 
+export type ParsedApkgNote = {
+  ankiModelName: string;
+  ankiModelType: number;
+  fieldValues: Record<string, string>;
+  templates: Array<{ ord: number; name: string; qfmt: string; afmt: string }>;
+};
+
+export type ParsedApkgStructured = {
+  notes: ParsedApkgNote[];
+  skippedCount: number;
+};
+
 const MAX_INLINE_MEDIA_BYTES = 1_500_000;
 const FIELD_SEP = "\x1f";
 
@@ -106,7 +118,7 @@ function parseModels(raw: unknown): Map<number, AnkiModel> {
   return models;
 }
 
-export async function parseApkg(input: Uint8Array | ArrayBuffer | Buffer): Promise<ParsedApkg> {
+async function openApkgDb(input: Uint8Array | ArrayBuffer | Buffer) {
   const bytes = input instanceof Buffer ? new Uint8Array(input) : new Uint8Array(input);
   let zip: JSZip;
   try {
@@ -132,12 +144,59 @@ export async function parseApkg(input: Uint8Array | ArrayBuffer | Buffer): Promi
   const dbBytes = await collection.async("uint8array");
   const SQL = await getSql();
   const db = new SQL.Database(dbBytes);
+  const media = await loadMedia(zip);
+  const colRows = queryAll(db, "SELECT models FROM col LIMIT 1");
+  const models = parseModels(colRows[0]?.models);
+  return { db, media, models, zip };
+}
+
+export async function parseApkgStructured(
+  input: Uint8Array | ArrayBuffer | Buffer,
+): Promise<ParsedApkgStructured> {
+  const { db, models } = await openApkgDb(input);
+  try {
+    const notes = queryAll(db, "SELECT id, mid, flds FROM notes");
+    const parsedNotes: ParsedApkgNote[] = [];
+    let skippedCount = 0;
+    const seen = new Set<number>();
+
+    for (const row of notes) {
+      const nid = Number(row.id);
+      if (seen.has(nid)) continue;
+      seen.add(nid);
+      const mid = Number(row.mid);
+      const model = models.get(mid);
+      const fields = String(row.flds ?? "").split(FIELD_SEP);
+      if (!model) {
+        skippedCount += 1;
+        continue;
+      }
+      const fieldValues: Record<string, string> = {};
+      for (const field of model.flds) {
+        fieldValues[field.name] = fields[field.ord] ?? "";
+      }
+      parsedNotes.push({
+        ankiModelName: model.name,
+        ankiModelType: model.type,
+        fieldValues,
+        templates: model.tmpls.map((t) => ({
+          ord: t.ord,
+          name: t.name,
+          qfmt: t.qfmt,
+          afmt: t.afmt,
+        })),
+      });
+    }
+    return { notes: parsedNotes, skippedCount };
+  } finally {
+    db.close();
+  }
+}
+
+export async function parseApkg(input: Uint8Array | ArrayBuffer | Buffer): Promise<ParsedApkg> {
+  const { db, media, models } = await openApkgDb(input);
 
   try {
-    const media = await loadMedia(zip);
-    const colRows = queryAll(db, "SELECT models FROM col LIMIT 1");
-    const models = parseModels(colRows[0]?.models);
-
     const notes = queryAll(db, "SELECT id, mid, flds FROM notes");
     const noteById = new Map<number, { mid: number; fields: string[] }>();
     for (const row of notes) {

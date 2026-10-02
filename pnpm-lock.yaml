@@ -20,6 +20,9 @@ importers:
       '@kiri/apkg':
         specifier: workspace:*
         version: link:../../packages/apkg
+      '@kiri/card-templates':
+        specifier: workspace:*
+        version: link:../../packages/card-templates
       '@kiri/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -63,6 +66,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@kiri/card-templates':
+        specifier: workspace:*
+        version: link:../../packages/card-templates
       '@kiri/schema':
         specifier: workspace:*
         version: link:../../packages/schema
@@ -112,6 +118,9 @@ importers:
 
   packages/apkg:
     dependencies:
+      '@kiri/card-templates':
+        specifier: workspace:*
+        version: link:../card-templates
       '@kiri/schema':
         specifier: workspace:*
         version: link:../schema
@@ -125,6 +134,15 @@ importers:
       '@types/sql.js':
         specifier: ^1.4.9
         version: 1.4.11
+      tsx:
+        specifier: ^4.19.4
+        version: 4.23.13
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  packages/card-templates:
+    devDependencies:
       tsx:
         specifier: ^4.19.4
         version: 4.23.13

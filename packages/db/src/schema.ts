@@ -6,6 +6,7 @@ import {
   doublePrecision,
   index,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -98,6 +99,103 @@ export const decks = pgTable(
   ],
 );
 
+export const noteModels = pgTable(
+  "note_models",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    kind: text("kind").notNull().default("basic"),
+    css: text("css").notNull().default(""),
+    config: jsonb("config").$type<Record<string, unknown>>().notNull().default({}),
+    builtinSlug: text("builtin_slug"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("note_models_user_id_idx").on(table.userId),
+    uniqueIndex("note_models_user_slug_idx").on(table.userId, table.builtinSlug),
+  ],
+);
+
+export const modelFields = pgTable(
+  "model_fields",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    modelId: uuid("model_id")
+      .notNull()
+      .references(() => noteModels.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    ord: integer("ord").notNull().default(0),
+    isSort: boolean("is_sort").notNull().default(false),
+    editorOpts: jsonb("editor_opts").$type<Record<string, unknown>>().notNull().default({}),
+  },
+  (table) => [uniqueIndex("model_fields_model_ord_idx").on(table.modelId, table.ord)],
+);
+
+export const cardTemplates = pgTable(
+  "card_templates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    modelId: uuid("model_id")
+      .notNull()
+      .references(() => noteModels.id, { onDelete: "cascade" }),
+    ord: integer("ord").notNull().default(0),
+    name: text("name").notNull(),
+    qfmt: text("qfmt").notNull().default(""),
+    afmt: text("afmt").notNull().default(""),
+    deckOverrideId: uuid("deck_override_id").references(() => decks.id, {
+      onDelete: "set null",
+    }),
+  },
+  (table) => [uniqueIndex("card_templates_model_ord_idx").on(table.modelId, table.ord)],
+);
+
+export const collectionNotes = pgTable(
+  "collection_notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    modelId: uuid("model_id")
+      .notNull()
+      .references(() => noteModels.id, { onDelete: "restrict" }),
+    deckId: uuid("deck_id")
+      .notNull()
+      .references(() => decks.id, { onDelete: "cascade" }),
+    fieldValues: jsonb("field_values").$type<Record<string, string>>().notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("collection_notes_user_id_idx").on(table.userId),
+    index("collection_notes_deck_id_idx").on(table.deckId),
+    index("collection_notes_model_id_idx").on(table.modelId),
+  ],
+);
+
+export const mediaAssets = pgTable(
+  "media_assets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    contentHash: text("content_hash").notNull(),
+    storageKey: text("storage_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    byteSize: integer("byte_size").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("media_assets_user_hash_idx").on(table.userId, table.contentHash),
+    index("media_assets_user_id_idx").on(table.userId),
+  ],
+);
+
 export const cards = pgTable(
   "cards",
   {
@@ -105,6 +203,11 @@ export const cards = pgTable(
     deckId: uuid("deck_id")
       .notNull()
       .references(() => decks.id, { onDelete: "cascade" }),
+    collectionNoteId: uuid("collection_note_id").references(() => collectionNotes.id, {
+      onDelete: "cascade",
+    }),
+    templateOrd: integer("template_ord").notNull().default(0),
+    clozeOrd: integer("cloze_ord").notNull().default(-1),
     frontText: text("front_text").notNull().default(""),
     backText: text("back_text").notNull().default(""),
     frontPencilData: bytea("front_pencil_data"),
@@ -116,6 +219,7 @@ export const cards = pgTable(
       onDelete: "set null",
     }),
     suspended: boolean("suspended").notNull().default(false),
+    buriedUntil: timestamp("buried_until", { withTimezone: true }),
     flag: integer("flag").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -123,6 +227,12 @@ export const cards = pgTable(
   (table) => [
     index("cards_deck_id_idx").on(table.deckId),
     index("cards_source_note_id_idx").on(table.sourceNoteId),
+    index("cards_collection_note_id_idx").on(table.collectionNoteId),
+    uniqueIndex("cards_collection_note_slot_idx").on(
+      table.collectionNoteId,
+      table.templateOrd,
+      table.clozeOrd,
+    ),
   ],
 );
 
@@ -265,10 +375,44 @@ export const notePagesRelations = relations(notePages, ({ one }) => ({
   }),
 }));
 
+export const noteModelsRelations = relations(noteModels, ({ one, many }) => ({
+  user: one(users, { fields: [noteModels.userId], references: [users.id] }),
+  fields: many(modelFields),
+  templates: many(cardTemplates),
+  collectionNotes: many(collectionNotes),
+}));
+
+export const modelFieldsRelations = relations(modelFields, ({ one }) => ({
+  model: one(noteModels, { fields: [modelFields.modelId], references: [noteModels.id] }),
+}));
+
+export const cardTemplatesRelations = relations(cardTemplates, ({ one }) => ({
+  model: one(noteModels, { fields: [cardTemplates.modelId], references: [noteModels.id] }),
+  deckOverride: one(decks, {
+    fields: [cardTemplates.deckOverrideId],
+    references: [decks.id],
+  }),
+}));
+
+export const collectionNotesRelations = relations(collectionNotes, ({ one, many }) => ({
+  user: one(users, { fields: [collectionNotes.userId], references: [users.id] }),
+  model: one(noteModels, { fields: [collectionNotes.modelId], references: [noteModels.id] }),
+  deck: one(decks, { fields: [collectionNotes.deckId], references: [decks.id] }),
+  cards: many(cards),
+}));
+
+export const mediaAssetsRelations = relations(mediaAssets, ({ one }) => ({
+  user: one(users, { fields: [mediaAssets.userId], references: [users.id] }),
+}));
+
 export const cardsRelations = relations(cards, ({ one, many }) => ({
   deck: one(decks, {
     fields: [cards.deckId],
     references: [decks.id],
+  }),
+  collectionNote: one(collectionNotes, {
+    fields: [cards.collectionNoteId],
+    references: [collectionNotes.id],
   }),
   sourceNote: one(notes, {
     fields: [cards.sourceNoteId],
@@ -328,3 +472,8 @@ export type ReviewState = typeof reviewStates.$inferSelect;
 export type Tag = typeof tags.$inferSelect;
 export type CardTag = typeof cardTags.$inferSelect;
 export type SavedSearch = typeof savedSearches.$inferSelect;
+export type NoteModel = typeof noteModels.$inferSelect;
+export type ModelField = typeof modelFields.$inferSelect;
+export type CardTemplate = typeof cardTemplates.$inferSelect;
+export type CollectionNote = typeof collectionNotes.$inferSelect;
+export type MediaAsset = typeof mediaAssets.$inferSelect;

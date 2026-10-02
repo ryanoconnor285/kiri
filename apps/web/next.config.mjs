@@ -2,7 +2,7 @@ const apiOrigin = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").r
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@kiri/schema"],
+  transpilePackages: ["@kiri/schema", "@kiri/card-templates"],
   async rewrites() {
     return [
       { source: "/api/:path*", destination: `${apiOrigin}/api/:path*` },

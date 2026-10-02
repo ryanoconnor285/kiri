@@ -1,6 +1,16 @@
 import SchemaBuilder from "@pothos/core";
 import DataloaderPlugin from "@pothos/plugin-dataloader";
-import { cards, decks, notePages, notes, reviewStates } from "@kiri/db";
+import {
+  cardTemplates,
+  cards,
+  collectionNotes,
+  decks,
+  modelFields,
+  noteModels,
+  notePages,
+  notes,
+  reviewStates,
+} from "@kiri/db";
 import { AiImportInputSchema, stubAiImport } from "@kiri/schema";
 import { GraphQLError } from "graphql";
 import { and, asc, count, desc, eq, inArray, lte, max, sql } from "drizzle-orm";
@@ -23,6 +33,22 @@ import {
   setCardsFlagForUser,
   setCardsSuspendedForUser,
 } from "../browse/card-meta.js";
+import { getCardStudyRender } from "../collection-notes/render-study.js";
+import { wrapLegacyFlatCards } from "../collection-notes/legacy-wrap.js";
+import {
+  changeCollectionNoteModel,
+  cloneNoteModel,
+  createNoteModel,
+  deleteCollectionNote,
+  getCollectionNote,
+  getNoteModel,
+  listCardsForCollectionNote,
+  listCollectionNotes,
+  listNoteModels,
+  updateNoteModel,
+  upsertCollectionNote,
+} from "../collection-notes/service.js";
+import { regenerateCardsForCollectionNote } from "../collection-notes/regenerate.js";
 import type { GraphQLContext } from "../context.js";
 import { calculateSm2 } from "../srs/sm2.js";
 
@@ -245,6 +271,9 @@ DeckType.implement({
 const CardType = builder.objectRef<{
   id: string;
   deckId: string;
+  collectionNoteId?: string | null;
+  templateOrd?: number;
+  clozeOrd?: number;
   frontText: string;
   backText: string;
   frontPencilData: Buffer | null;
@@ -266,6 +295,13 @@ CardType.implement({
     }),
     flag: t.int({
       resolve: (card) => card.flag ?? 0,
+    }),
+    collectionNoteId: t.exposeString("collectionNoteId", { nullable: true }),
+    templateOrd: t.int({
+      resolve: (card) => card.templateOrd ?? 0,
+    }),
+    clozeOrd: t.int({
+      resolve: (card) => card.clozeOrd ?? -1,
     }),
     frontPencilData: t.string({
       nullable: true,
@@ -490,6 +526,148 @@ DuplicateCardGroupType.implement({
   }),
 });
 
+const ModelFieldType = builder.objectRef<{
+  id: string;
+  modelId: string;
+  name: string;
+  ord: number;
+  isSort: boolean;
+}>("ModelField");
+
+ModelFieldType.implement({
+  fields: (t) => ({
+    id: t.exposeString("id"),
+    modelId: t.exposeString("modelId"),
+    name: t.exposeString("name"),
+    ord: t.exposeInt("ord"),
+    isSort: t.exposeBoolean("isSort"),
+  }),
+});
+
+const CardTemplateType = builder.objectRef<{
+  id: string;
+  modelId: string;
+  ord: number;
+  name: string;
+  qfmt: string;
+  afmt: string;
+  deckOverrideId: string | null;
+}>("CardTemplate");
+
+CardTemplateType.implement({
+  fields: (t) => ({
+    id: t.exposeString("id"),
+    modelId: t.exposeString("modelId"),
+    ord: t.exposeInt("ord"),
+    name: t.exposeString("name"),
+    qfmt: t.exposeString("qfmt"),
+    afmt: t.exposeString("afmt"),
+    deckOverrideId: t.exposeString("deckOverrideId", { nullable: true }),
+  }),
+});
+
+const NoteModelType = builder.objectRef<{
+  id: string;
+  name: string;
+  kind: string;
+  css: string;
+  builtinSlug: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}>("NoteModel");
+
+NoteModelType.implement({
+  fields: (t) => ({
+    id: t.exposeString("id"),
+    name: t.exposeString("name"),
+    kind: t.exposeString("kind"),
+    css: t.exposeString("css"),
+    builtinSlug: t.exposeString("builtinSlug", { nullable: true }),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+    fields: t.field({
+      type: [ModelFieldType],
+      resolve: async (model, _args, context) => {
+        return context.db
+          .select()
+          .from(modelFields)
+          .where(eq(modelFields.modelId, model.id))
+          .orderBy(asc(modelFields.ord));
+      },
+    }),
+    templates: t.field({
+      type: [CardTemplateType],
+      resolve: async (model, _args, context) => {
+        return context.db
+          .select()
+          .from(cardTemplates)
+          .where(eq(cardTemplates.modelId, model.id))
+          .orderBy(asc(cardTemplates.ord));
+      },
+    }),
+  }),
+});
+
+const CollectionNoteType = builder.objectRef<{
+  id: string;
+  modelId: string;
+  deckId: string;
+  fieldValues: Record<string, string>;
+  updatedAt: Date;
+}>("CollectionNote");
+
+CollectionNoteType.implement({
+  fields: (t) => ({
+    id: t.exposeString("id"),
+    modelId: t.exposeString("modelId"),
+    deckId: t.exposeString("deckId"),
+    fieldValuesJson: t.string({
+      resolve: (note) => JSON.stringify(note.fieldValues ?? {}),
+    }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+    cards: t.field({
+      type: [CardType],
+      resolve: async (note, _args, context) => {
+        return listCardsForCollectionNote(context, note.id);
+      },
+    }),
+  }),
+});
+
+const CardStudyRenderType = builder.objectRef<{
+  cardId: string;
+  studyMode: string;
+  frontHtml: string;
+  backHtml: string;
+  modelCss: string;
+  typeInField: string | null;
+  noteTypeName: string | null;
+  mcChoices: string[] | null;
+  mcAllowMultiple: boolean | null;
+  mcCorrectIndices: number[] | null;
+}>("CardStudyRender");
+
+CardStudyRenderType.implement({
+  fields: (t) => ({
+    cardId: t.exposeString("cardId"),
+    studyMode: t.exposeString("studyMode"),
+    frontHtml: t.exposeString("frontHtml"),
+    backHtml: t.exposeString("backHtml"),
+    modelCss: t.exposeString("modelCss"),
+    typeInField: t.exposeString("typeInField", { nullable: true }),
+    noteTypeName: t.exposeString("noteTypeName", { nullable: true }),
+    mcChoices: t.exposeStringList("mcChoices", { nullable: true }),
+    mcAllowMultiple: t.boolean({
+      nullable: true,
+      resolve: (p) => p.mcAllowMultiple,
+    }),
+    mcCorrectIndices: t.intList({
+      nullable: true,
+      resolve: (p) => p.mcCorrectIndices,
+    }),
+  }),
+});
+
 builder.queryType({
   fields: (t) => ({
     me: t.field({
@@ -683,6 +861,52 @@ builder.queryType({
           args.folderId,
           args.includeSubfolders ?? true,
         );
+      },
+    }),
+    noteModels: t.field({
+      type: [NoteModelType],
+      resolve: async (_root, _args, context) => {
+        const user = requireUser(context);
+        await wrapLegacyFlatCards(context, user.userId);
+        return listNoteModels(context, user.userId);
+      },
+    }),
+    noteModel: t.field({
+      type: NoteModelType,
+      nullable: true,
+      args: { id: t.arg.string({ required: true }) },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return getNoteModel(context, user.userId, args.id);
+      },
+    }),
+    collectionNotes: t.field({
+      type: [CollectionNoteType],
+      args: { deckId: t.arg.string({ required: true }) },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return listCollectionNotes(context, user.userId, args.deckId);
+      },
+    }),
+    collectionNote: t.field({
+      type: CollectionNoteType,
+      nullable: true,
+      args: { id: t.arg.string({ required: true }) },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return getCollectionNote(context, user.userId, args.id);
+      },
+    }),
+    cardStudyRender: t.field({
+      type: CardStudyRenderType,
+      nullable: true,
+      args: {
+        cardId: t.arg.string({ required: true }),
+        revealed: t.arg.boolean({ required: false, defaultValue: false }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return getCardStudyRender(context, user.userId, args.cardId, args.revealed ?? false);
       },
     }),
   }),
@@ -991,6 +1215,98 @@ builder.mutationType({
       resolve: async (_root, args, context) => {
         const user = requireUser(context);
         return setCardsDueDateForUser(context, user.userId, args.cardIds, args.dueDate);
+      },
+    }),
+    cloneNoteModel: t.field({
+      type: NoteModelType,
+      args: { id: t.arg.string({ required: true }) },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return cloneNoteModel(context, user.userId, args.id);
+      },
+    }),
+    updateNoteModel: t.field({
+      type: NoteModelType,
+      nullable: true,
+      args: {
+        id: t.arg.string({ required: true }),
+        name: t.arg.string({ required: false }),
+        css: t.arg.string({ required: false }),
+        fieldsJson: t.arg.string({ required: false }),
+        templatesJson: t.arg.string({ required: false }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        type FieldIn = { name: string; ord: number; isSort?: boolean };
+        type TmplIn = { ord: number; name: string; qfmt: string; afmt: string };
+        const patch: Parameters<typeof updateNoteModel>[3] = {};
+        if (args.name) patch.name = args.name;
+        if (args.css !== undefined && args.css !== null) patch.css = args.css;
+        if (args.fieldsJson) {
+          patch.fields = JSON.parse(args.fieldsJson) as FieldIn[];
+        }
+        if (args.templatesJson) {
+          patch.templates = JSON.parse(args.templatesJson) as TmplIn[];
+        }
+        return updateNoteModel(context, user.userId, args.id, patch);
+      },
+    }),
+    upsertCollectionNote: t.field({
+      type: CollectionNoteType,
+      args: {
+        id: t.arg.string({ required: false }),
+        modelId: t.arg.string({ required: true }),
+        deckId: t.arg.string({ required: true }),
+        fieldValuesJson: t.arg.string({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const fieldValues = JSON.parse(args.fieldValuesJson) as Record<string, string>;
+        const note = await upsertCollectionNote(context, user.userId, {
+          id: args.id,
+          modelId: args.modelId,
+          deckId: args.deckId,
+          fieldValues,
+        });
+        if (!note) throw new Error("Could not save note");
+        return note;
+      },
+    }),
+    deleteCollectionNote: t.field({
+      type: "Boolean",
+      args: { id: t.arg.string({ required: true }) },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return deleteCollectionNote(context, user.userId, args.id);
+      },
+    }),
+    changeCollectionNoteModel: t.field({
+      type: CollectionNoteType,
+      nullable: true,
+      args: {
+        noteId: t.arg.string({ required: true }),
+        targetModelId: t.arg.string({ required: true }),
+        fieldMapJson: t.arg.string({ required: false, defaultValue: "{}" }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const fieldMap = JSON.parse(args.fieldMapJson ?? "{}") as Record<string, string>;
+        return changeCollectionNoteModel(
+          context,
+          user.userId,
+          args.noteId,
+          args.targetModelId,
+          fieldMap,
+        );
+      },
+    }),
+    regenerateCollectionNoteCards: t.field({
+      type: "Int",
+      args: { noteId: t.arg.string({ required: true }) },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const ids = await regenerateCardsForCollectionNote(context, user.userId, args.noteId);
+        return ids.length;
       },
     }),
     submitReview: t.field({

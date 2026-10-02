@@ -3,10 +3,13 @@ export type StudyRating = "right" | "wrong";
 export type StudyMeta = {
   /** Wrong answers this session (for leave-round SM-2 flush). */
   wrongAttempts: number;
+  /** Increments when the card is shown again (e.g. after Wrong) — used to reshuffle MC options. */
+  presentations: number;
 };
 
 export const EMPTY_STUDY_META: StudyMeta = {
   wrongAttempts: 0,
+  presentations: 0,
 };
 
 export type StudyStep = {
@@ -23,7 +26,10 @@ export function applyStudy(meta: StudyMeta, rating: StudyRating): StudyStep {
   return {
     submit: null,
     done: false,
-    meta: { wrongAttempts: meta.wrongAttempts + 1 },
+    meta: {
+      wrongAttempts: meta.wrongAttempts + 1,
+      presentations: meta.presentations + 1,
+    },
   };
 }
 

@@ -258,8 +258,14 @@ export default function DeckDetailPage() {
           <button type="button" className="btn btn-secondary" onClick={scrollToAddCard}>
             Add card
           </button>
+          <Link href={`/decks/${deck.id}/add-note`} className="btn btn-secondary">
+            Add note
+          </Link>
           <Link href={`/decks/${deck.id}/import`} className="btn btn-secondary">
             Import cards
+          </Link>
+          <Link href="/note-types" className="btn btn-secondary">
+            Note types
           </Link>
           <button
             type="button"

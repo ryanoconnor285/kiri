@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@kiri/apkg": "workspace:*",
+    "@kiri/card-templates": "workspace:*",
     "@kiri/db": "workspace:*",
     "@kiri/schema": "workspace:*",
     "@pothos/core": "^4.7.0",

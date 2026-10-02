@@ -14,8 +14,10 @@ struct StudyView: View {
     @State private var loading = true
     @State private var submitting = false
     @State private var error: String?
+    @State private var studyRender: CardStudyRenderDTO?
 
     private let recallRepo = RecallRepository()
+    private let studyRenderRepo = StudyRenderRepository()
 
     private var current: StudyQueueItem? { hopper.first }
 
@@ -49,14 +51,19 @@ struct StudyView: View {
                 )
                 Button("Back to folder") { dismiss() }
             } else if let item = current {
-                Text(showingBack ? "Answer" : "Prompt")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                let mode = studyRender?.studyMode ?? "STANDARD"
+                let isMc = mode == "MULTIPLE_CHOICE" && (studyRender?.mcChoices?.isEmpty == false)
 
-                cardFace(item.card)
-                    .onTapGesture {
-                        if !showingBack { showingBack = true }
+                if !isMc {
+                    Text(showingBack ? "Answer" : "Prompt")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                studyStage(item: item, isMc: isMc)
+                    .task(id: "\(item.id)-\(item.meta.presentations)") {
+                        await loadStudyRender(cardId: item.id, revealed: false)
                     }
 
                 if showingBack {
@@ -83,6 +90,41 @@ struct StudyView: View {
         .tint(KiriTheme.accent(colorScheme))
         .navigationBarBackButtonHidden(submitting)
         .task { await loadQueue() }
+    }
+
+    @ViewBuilder
+    private func studyStage(item: StudyQueueItem, isMc: Bool) -> some View {
+        if isMc, let render = studyRender, let choices = render.mcChoices {
+            MultipleChoiceStudyView(
+                questionHtml: render.frontHtml,
+                choices: choices,
+                allowMultiple: render.mcAllowMultiple ?? false,
+                correctIndices: render.mcCorrectIndices,
+                explanationHtml: render.backHtml,
+                shuffleSeed: item.meta.presentations,
+                revealed: showingBack,
+                onReveal: {
+                    showingBack = true
+                    Task { await loadStudyRender(cardId: item.id, revealed: true) }
+                }
+            )
+        } else {
+            cardFace(item.card)
+                .onTapGesture {
+                    if !showingBack { showingBack = true }
+                }
+        }
+    }
+
+    private func loadStudyRender(cardId: String, revealed: Bool) async {
+        do {
+            studyRender = try await studyRenderRepo.fetchRender(cardId: cardId, revealed: revealed)
+            if !revealed {
+                showingBack = false
+            }
+        } catch {
+            studyRender = nil
+        }
     }
 
     @ViewBuilder

@@ -3,6 +3,7 @@ import { createYoga } from "graphql-yoga";
 import { authHandler, createContextFromHeaders, setCorsHeaders } from "./context.js";
 import { schema } from "./graphql/schema.js";
 import { handleImportApkg } from "./import-apkg.js";
+import { handleMediaUpload } from "./media/upload.js";
 
 const port = Number(process.env.PORT ?? 4000);
 
@@ -37,6 +38,11 @@ const server = createServer(async (req, res) => {
 
   if (url === "/api/import/apkg") {
     await handleImportApkg(req, res);
+    return;
+  }
+
+  if (url === "/api/media/upload") {
+    await handleMediaUpload(req, res);
     return;
   }
 

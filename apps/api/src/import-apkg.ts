@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { parseApkg } from "@kiri/apkg";
+import { importApkgStructuredToDeck } from "./collection-notes/import-apkg-structured.js";
 import { cards, decks, reviewStates } from "@kiri/db";
 import { and, eq } from "drizzle-orm";
 import { db, getSessionFromRequest } from "./context.js";
@@ -76,6 +77,33 @@ export async function handleImportApkg(
     return;
   }
 
+  const structured = url.searchParams.get("structured") !== "0";
+
+  if (structured) {
+    try {
+      const result = await importApkgStructuredToDeck(db, user.userId, deckId, body);
+      if (result.importedNotes === 0) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "No notes found in this Anki package" }));
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          importedCount: result.importedNotes,
+          skippedCount: result.skippedCount,
+          structured: true,
+        }),
+      );
+      return;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed structured import";
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: message }));
+      return;
+    }
+  }
+
   let parsed;
   try {
     parsed = await parseApkg(body);
@@ -131,6 +159,7 @@ export async function handleImportApkg(
     JSON.stringify({
       importedCount,
       skippedCount: parsed.skippedCount,
+      structured: false,
     }),
   );
 }
