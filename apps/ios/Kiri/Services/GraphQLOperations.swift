@@ -91,6 +91,12 @@ enum GraphQLOperations {
     }
     """
 
+    static let deleteDeckMutation = """
+    mutation($id: String!) {
+      deleteDeck(id: $id)
+    }
+    """
+
     static let notesQuery = """
     query($deckId: String!) {
       notes(deckId: $deckId) {

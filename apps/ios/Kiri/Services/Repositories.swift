@@ -56,6 +56,15 @@ struct DeckRepository {
         )
         return data.createDeck
     }
+
+    func deleteDeck(id: String) async throws {
+        struct Response: Decodable { let deleteDeck: Bool }
+        _ = try await client.fetch(
+            query: GraphQLOperations.deleteDeckMutation,
+            variables: ["id": id],
+            as: Response.self
+        )
+    }
 }
 
 struct CardRepository {

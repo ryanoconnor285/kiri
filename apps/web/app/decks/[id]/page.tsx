@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { gqlFetch } from "@/lib/graphql";
+import {
+  computeSubtreeImpact,
+  deleteCardConfirmMessage,
+  deleteDeckConfirmMessage,
+} from "@/lib/deck-tree";
 import { CardFace } from "@/components/CardFace";
 import { FitCardBody } from "@/components/FitCardBody";
 
@@ -36,6 +41,9 @@ const NOTES_QUERY = `query($deckId: String!) {
   notes(deckId: $deckId) { id title pageCount updatedAt }
 }`;
 
+const DELETE_CARD_MUTATION = `mutation($id: String!) { deleteCard(id: $id) }`;
+const DELETE_DECK_MUTATION = `mutation($id: String!) { deleteDeck(id: $id) }`;
+
 export default function DeckDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -53,6 +61,7 @@ export default function DeckDetailPage() {
   const [cardFeedback, setCardFeedback] = useState<{ kind: "ok" | "err"; text: string } | null>(
     null,
   );
+  const [deleting, setDeleting] = useState(false);
   const addCardRef = useRef<HTMLDivElement>(null);
   const frontInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -158,6 +167,52 @@ export default function DeckDetailPage() {
     frontInputRef.current?.focus();
   }
 
+  function confirmDeleteDeck(targetId: string, title: string) {
+    const impact = computeSubtreeImpact(decks, targetId);
+    return window.confirm(deleteDeckConfirmMessage(title, impact));
+  }
+
+  async function deleteFolder(targetId: string, title: string) {
+    if (deleting) return;
+    if (!confirmDeleteDeck(targetId, title)) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      await gqlFetch<{ deleteDeck: boolean }>(DELETE_DECK_MUTATION, { id: targetId });
+      if (targetId === params.id) {
+        const removed = decks.find((d) => d.id === targetId);
+        const parentId = removed?.parentId;
+        router.push(parentId ? `/decks/${parentId}` : "/decks");
+        return;
+      }
+      await refetch();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete folder");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  async function deleteCardById(cardId: string) {
+    if (deleting) return;
+    if (!window.confirm(deleteCardConfirmMessage())) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      await gqlFetch<{ deleteCard: boolean }>(DELETE_CARD_MUTATION, { id: cardId });
+      setFlipped((prev) => {
+        const next = { ...prev };
+        delete next[cardId];
+        return next;
+      });
+      await refetch();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete card");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   if (isPending || loading) {
     return (
       <div className="container">
@@ -206,8 +261,22 @@ export default function DeckDetailPage() {
           <Link href={`/decks/${deck.id}/import`} className="btn btn-secondary">
             Import cards
           </Link>
+          <button
+            type="button"
+            className="btn btn-danger"
+            disabled={deleting}
+            onClick={() => deleteFolder(deck.id, deck.title)}
+          >
+            Delete folder
+          </button>
         </div>
       </header>
+
+      {error && (
+        <p style={{ color: "var(--danger)", marginBottom: "1rem" }} role="alert">
+          {error}
+        </p>
+      )}
 
       <section style={{ marginBottom: "2rem" }}>
         <h2 style={{ fontSize: "1rem", marginBottom: "0.75rem" }}>Subfolders</h2>
@@ -228,14 +297,24 @@ export default function DeckDetailPage() {
         ) : (
           <div className="grid">
             {children.map((child) => (
-              <Link key={child.id} href={`/decks/${child.id}`} className="card">
-                <h2 style={{ fontSize: "1rem" }}>📁 {child.title}</h2>
-                {child.description && <p className="muted">{child.description}</p>}
-                <p className="muted">
-                  {child.cardCount ?? 0} cards
-                  {(child.dueCount ?? 0) > 0 ? ` · ${child.dueCount} ready` : ""}
-                </p>
-              </Link>
+              <div key={child.id} className="card stack" style={{ gap: "0.75rem" }}>
+                <Link href={`/decks/${child.id}`} style={{ color: "inherit", textDecoration: "none" }}>
+                  <h2 style={{ fontSize: "1rem" }}>📁 {child.title}</h2>
+                  {child.description && <p className="muted">{child.description}</p>}
+                  <p className="muted" style={{ margin: 0 }}>
+                    {child.cardCount ?? 0} cards
+                    {(child.dueCount ?? 0) > 0 ? ` · ${child.dueCount} ready` : ""}
+                  </p>
+                </Link>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  disabled={deleting}
+                  onClick={() => deleteFolder(child.id, child.title)}
+                >
+                  Delete subfolder
+                </button>
+              </div>
             ))}
           </div>
         )}
@@ -352,18 +431,27 @@ export default function DeckDetailPage() {
           {cards.map((card) => {
             const showBack = flipped[card.id];
             return (
-              <button
-                key={card.id}
-                type="button"
-                className="card flashcard flashcard-browse"
-                onClick={() => toggleFlip(card.id)}
-              >
-                <p className="flashcard-label">{showBack ? "Back" : "Front"}</p>
-                <FitCardBody contentKey={`${card.id}:${showBack ? "b" : "f"}`}>
-                  <CardFace text={showBack ? card.backText : card.frontText} />
-                </FitCardBody>
-                <p className="flashcard-hint">Tap to flip</p>
-              </button>
+              <div key={card.id} className="stack" style={{ gap: "0.5rem" }}>
+                <button
+                  type="button"
+                  className="card flashcard flashcard-browse"
+                  onClick={() => toggleFlip(card.id)}
+                >
+                  <p className="flashcard-label">{showBack ? "Back" : "Front"}</p>
+                  <FitCardBody contentKey={`${card.id}:${showBack ? "b" : "f"}`}>
+                    <CardFace text={showBack ? card.backText : card.frontText} />
+                  </FitCardBody>
+                  <p className="flashcard-hint">Tap to flip</p>
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  disabled={deleting}
+                  onClick={() => deleteCardById(card.id)}
+                >
+                  Delete card
+                </button>
+              </div>
             );
           })}
           {cards.length === 0 && <p className="muted">No cards in this folder yet.</p>}

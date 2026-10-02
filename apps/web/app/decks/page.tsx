@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
 import { gqlFetch } from "@/lib/graphql";
+import { computeSubtreeImpact, deleteDeckConfirmMessage } from "@/lib/deck-tree";
 
 type Deck = {
   id: string;
@@ -17,6 +18,7 @@ type Deck = {
 };
 
 const DECKS_QUERY = `query { decks { id parentId title description createdAt cardCount dueCount } }`;
+const DELETE_DECK_MUTATION = `mutation($id: String!) { deleteDeck(id: $id) }`;
 
 function timeGreeting(): string {
   const hour = new Date().getHours();
@@ -35,6 +37,7 @@ export default function DecksPage() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [addingChildFor, setAddingChildFor] = useState<string | null>(null);
   const [childTitle, setChildTitle] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const refetch = useCallback(async () => {
     const data = await gqlFetch<{ decks: Deck[] }>(DECKS_QUERY);
@@ -73,6 +76,22 @@ export default function DecksPage() {
     () => decks.find((deck) => (deck.dueCount ?? 0) > 0) ?? null,
     [decks],
   );
+
+  async function deleteFolder(deckId: string, title: string) {
+    if (deleting) return;
+    const impact = computeSubtreeImpact(decks, deckId);
+    if (!window.confirm(deleteDeckConfirmMessage(title, impact))) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      await gqlFetch<{ deleteDeck: boolean }>(DELETE_DECK_MUTATION, { id: deckId });
+      await refetch();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete folder");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function createDeck(parentId: string | null, title: string) {
     const trimmed = title.trim();
@@ -149,6 +168,14 @@ export default function DecksPage() {
                 }}
               >
                 + Subfolder
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                disabled={deleting}
+                onClick={() => deleteFolder(deck.id, deck.title)}
+              >
+                Delete
               </button>
             </div>
           </div>

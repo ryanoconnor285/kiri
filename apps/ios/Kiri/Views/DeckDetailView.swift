@@ -5,6 +5,7 @@ struct DeckDetailView: View {
     let deckTitle: String
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
     @State private var decks: [DeckDTO] = []
     @State private var notes: [NoteListDTO] = []
     @State private var cards: [CardDTO] = []
@@ -15,6 +16,8 @@ struct DeckDetailView: View {
     @State private var backText = ""
     @State private var savingCard = false
     @State private var openedNoteId: String?
+    @State private var deleteDeckTarget: (id: String, title: String)?
+    @State private var cardPendingDelete: CardDTO?
 
     private let deckRepo = DeckRepository()
     private let cardRepo = CardRepository()
@@ -55,6 +58,9 @@ struct DeckDetailView: View {
                         Label("Edit cards (Pencil)", systemImage: "pencil.tip.crop.circle")
                     }
                 }
+                Button("Delete folder", role: .destructive) {
+                    deleteDeckTarget = (deckId, deckTitle)
+                }
             }
 
             Section("Notebooks") {
@@ -92,6 +98,11 @@ struct DeckDetailView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button("Delete", role: .destructive) {
+                            deleteDeckTarget = (child.id, child.title)
+                        }
+                    }
                 }
             }
 
@@ -113,6 +124,11 @@ struct DeckDetailView: View {
                             .frame(minHeight: 32)
                             .lineLimit(3)
                     }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button("Delete", role: .destructive) {
+                            cardPendingDelete = card
+                        }
+                    }
                 }
             }
         }
@@ -124,6 +140,47 @@ struct DeckDetailView: View {
         .task { await load() }
         .navigationDestination(item: $openedNoteId) { id in
             NotebookEditorView(noteId: id)
+        }
+        .alert(
+            "Delete folder?",
+            isPresented: Binding(
+                get: { deleteDeckTarget != nil },
+                set: { if !$0 { deleteDeckTarget = nil } }
+            ),
+            presenting: deleteDeckTarget
+        ) { target in
+            Button("Delete", role: .destructive) {
+                Task { await performDeleteDeck(id: target.id) }
+            }
+            Button("Cancel", role: .cancel) {
+                deleteDeckTarget = nil
+            }
+        } message: { target in
+            let impact = DeckTreeHelpers.subtreeImpact(decks: decks, rootId: target.id)
+            Text(
+                DeckTreeHelpers.deleteDeckConfirmMessage(
+                    title: target.title,
+                    subfolderCount: impact.subfolderCount,
+                    totalCards: impact.totalCards
+                )
+            )
+        }
+        .alert(
+            "Delete card?",
+            isPresented: Binding(
+                get: { cardPendingDelete != nil },
+                set: { if !$0 { cardPendingDelete = nil } }
+            ),
+            presenting: cardPendingDelete
+        ) { _ in
+            Button("Delete", role: .destructive) {
+                Task { await performDeleteCard() }
+            }
+            Button("Cancel", role: .cancel) {
+                cardPendingDelete = nil
+            }
+        } message: { _ in
+            Text("Delete this flashcard? This cannot be undone.")
         }
     }
 
@@ -182,6 +239,31 @@ struct DeckDetailView: View {
             self.error = error.localizedDescription
         }
     }
+
+    private func performDeleteDeck(id: String) async {
+        deleteDeckTarget = nil
+        do {
+            try await deckRepo.deleteDeck(id: id)
+            if id == deckId {
+                dismiss()
+            } else {
+                await load()
+            }
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    private func performDeleteCard() async {
+        guard let card = cardPendingDelete else { return }
+        cardPendingDelete = nil
+        do {
+            try await cardRepo.deleteCard(id: card.id)
+            await load()
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
 }
 
 struct CardListEditorView: View {
@@ -190,6 +272,7 @@ struct CardListEditorView: View {
 
     @State private var cards: [CardDTO] = []
     @State private var error: String?
+    @State private var cardPendingDelete: CardDTO?
 
     private let cardRepo = CardRepository()
 
@@ -205,6 +288,11 @@ struct CardListEditorView: View {
                     Text(card.frontText.isEmpty ? "Untitled" : card.frontText)
                         .lineLimit(1)
                 }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button("Delete", role: .destructive) {
+                        cardPendingDelete = card
+                    }
+                }
             }
         }
         .navigationTitle("Edit — \(deckTitle)")
@@ -214,6 +302,23 @@ struct CardListEditorView: View {
             }
         }
         .task { await load() }
+        .alert(
+            "Delete card?",
+            isPresented: Binding(
+                get: { cardPendingDelete != nil },
+                set: { if !$0 { cardPendingDelete = nil } }
+            ),
+            presenting: cardPendingDelete
+        ) { _ in
+            Button("Delete", role: .destructive) {
+                Task { await deleteCard() }
+            }
+            Button("Cancel", role: .cancel) {
+                cardPendingDelete = nil
+            }
+        } message: { _ in
+            Text("Delete this flashcard? This cannot be undone.")
+        }
     }
 
     private func addCard() async {
@@ -233,6 +338,17 @@ struct CardListEditorView: View {
     private func load() async {
         do {
             cards = try await cardRepo.fetchCards(deckId: deckId)
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
+    private func deleteCard() async {
+        guard let card = cardPendingDelete else { return }
+        cardPendingDelete = nil
+        do {
+            try await cardRepo.deleteCard(id: card.id)
+            cards.removeAll { $0.id == card.id }
         } catch {
             self.error = error.localizedDescription
         }

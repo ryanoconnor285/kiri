@@ -7,6 +7,7 @@ struct DeckListView: View {
     @State private var loading = true
     @State private var error: String?
     @State private var newTitle = ""
+    @State private var deleteDeckTarget: (id: String, title: String)?
 
     private let deckRepo = DeckRepository()
 
@@ -61,6 +62,30 @@ struct DeckListView: View {
                 DeckDetailView(deckId: deck.id, deckTitle: deck.title)
             }
             .task { await load() }
+            .alert(
+                "Delete folder?",
+                isPresented: Binding(
+                    get: { deleteDeckTarget != nil },
+                    set: { if !$0 { deleteDeckTarget = nil } }
+                ),
+                presenting: deleteDeckTarget
+            ) { target in
+                Button("Delete", role: .destructive) {
+                    Task { await deleteFolder(id: target.id) }
+                }
+                Button("Cancel", role: .cancel) {
+                    deleteDeckTarget = nil
+                }
+            } message: { target in
+                let impact = DeckTreeHelpers.subtreeImpact(decks: decks, rootId: target.id)
+                Text(
+                    DeckTreeHelpers.deleteDeckConfirmMessage(
+                        title: target.title,
+                        subfolderCount: impact.subfolderCount,
+                        totalCards: impact.totalCards
+                    )
+                )
+            }
         }
         .tint(KiriTheme.accent(colorScheme))
     }
@@ -144,6 +169,11 @@ struct DeckListView: View {
                         deckRow(deck)
                     }
                     .buttonStyle(.plain)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button("Delete", role: .destructive) {
+                            deleteDeckTarget = (deck.id, deck.title)
+                        }
+                    }
                 }
             }
         }
@@ -229,6 +259,16 @@ struct DeckListView: View {
         do {
             _ = try await deckRepo.createDeck(title: trimmed, parentId: parentId)
             newTitle = ""
+            await load()
+        } catch let err {
+            self.error = err.localizedDescription
+        }
+    }
+
+    private func deleteFolder(id: String) async {
+        deleteDeckTarget = nil
+        do {
+            try await deckRepo.deleteDeck(id: id)
             await load()
         } catch let err {
             self.error = err.localizedDescription
