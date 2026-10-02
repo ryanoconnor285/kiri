@@ -15,7 +15,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "tsc --noEmit",
-    "test": "tsx --test src/import.test.ts"
+    "test": "tsx --test src/import.test.ts src/card-search.test.ts"
   },
   "dependencies": {
     "zod": "^3.25.67"

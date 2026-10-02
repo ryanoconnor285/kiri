@@ -41,6 +41,15 @@ export const ReviewQualitySchema = z.union([
 
 export type ReviewQuality = z.infer<typeof ReviewQualitySchema>;
 
+export {
+  appendSearchToken,
+  folderIdToken,
+  normalizeCardTextForDuplicate,
+  parseCardSearchQuery,
+  type ParsedCardSearch,
+  type SearchComposeMode,
+} from "./card-search.js";
+
 /** Stub: convert plain chemical formulas to basic KaTeX */
 export function normalizeScientificText(text: string): string {
   return text

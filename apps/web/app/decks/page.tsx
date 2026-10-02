@@ -55,6 +55,20 @@ export default function DecksPage() {
       .finally(() => setLoading(false));
   }, [session, isPending, router, refetch]);
 
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "b" && e.key !== "B") return;
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) {
+        return;
+      }
+      e.preventDefault();
+      router.push("/browse");
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [router]);
+
   // Group decks by parent so we can render the tree.
   const childrenByParent = useMemo(() => {
     const map = new Map<string | null, Deck[]>();
@@ -239,9 +253,14 @@ export default function DecksPage() {
             {session?.user?.email}
           </p>
         </div>
-        <button className="btn btn-secondary" type="button" onClick={() => signOut()}>
-          Sign out
-        </button>
+        <div className="row" style={{ gap: "0.5rem" }}>
+          <Link href="/browse" className="btn btn-secondary" title="Browse cards (B)">
+            Browse
+          </Link>
+          <button className="btn btn-secondary" type="button" onClick={() => signOut()}>
+            Sign out
+          </button>
+        </div>
       </header>
 
       {error && <p style={{ color: "var(--danger)", marginBottom: "1rem" }}>{error}</p>}

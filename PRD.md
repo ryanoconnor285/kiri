@@ -34,6 +34,8 @@ Study (`dueCount`, due-card fetch) already walks a folder **and its descendants*
 
 Do not force a separate “notes app” IA, tabs for Home / Notes / Browse, or renaming folders to “subjects” in data.
 
+**Browse** is an optional tool (web `/browse`, shortcut **B**; iOS **Browse**) for search and bulk card ops—not a fourth top-level tab. See [`docs/browse.md`](docs/browse.md) vs folder detail.
+
 ---
 
 ## 2. Notebooks (paged — not infinite)

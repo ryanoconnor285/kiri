@@ -36,6 +36,8 @@
         B1000001000000000000001B /* PaperBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001B /* PaperBackgroundView.swift */; };
 		B1000001000000000000001C /* NotebookEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001C /* NotebookEditorView.swift */; };
 		B1000001000000000000001D /* DeckTreeHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001D /* DeckTreeHelpers.swift */; };
+		B1000001000000000000001E /* CardSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001E /* CardSearch.swift */; };
+		B1000001000000000000001F /* BrowseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001F /* BrowseView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +70,8 @@
 		B2000001000000000000001B /* PaperBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperBackgroundView.swift; sourceTree = "<group>"; };
 		B2000001000000000000001C /* NotebookEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotebookEditorView.swift; sourceTree = "<group>"; };
 		B2000001000000000000001D /* DeckTreeHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckTreeHelpers.swift; sourceTree = "<group>"; };
+		B2000001000000000000001E /* CardSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardSearch.swift; sourceTree = "<group>"; };
+		B2000001000000000000001F /* BrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseView.swift; sourceTree = "<group>"; };
 		B20000010000000000000020 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		B20000010000000000000021 /* Staging.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Staging.xcconfig; sourceTree = "<group>"; };
 		A30000010000000000000001 /* Kiri.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kiri.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -136,6 +140,7 @@
 				B20000010000000000000007 /* Repositories.swift */,
 				B20000010000000000000008 /* RecallQueue.swift */,
 				B2000001000000000000001D /* DeckTreeHelpers.swift */,
+				B2000001000000000000001E /* CardSearch.swift */,
 				B20000010000000000000009 /* ApkgImportService.swift */,
 				B20000010000000000000002 /* KeychainHelper.swift */,
 			);
@@ -150,6 +155,7 @@
 				B20000010000000000000019 /* DrawingToolRail.swift */,
 				B20000010000000000000010 /* LoginView.swift */,
 				A20000010000000000000010 /* DeckListView.swift */,
+				B2000001000000000000001F /* BrowseView.swift */,
 				B20000010000000000000012 /* DeckDetailView.swift */,
 				A20000010000000000000009 /* ReviewView.swift */,
 				B20000010000000000000013 /* ImportView.swift */,
@@ -251,6 +257,7 @@
 				B10000010000000000000007 /* Repositories.swift in Sources */,
 				B10000010000000000000008 /* RecallQueue.swift in Sources */,
 				B1000001000000000000001D /* DeckTreeHelpers.swift in Sources */,
+				B1000001000000000000001E /* CardSearch.swift in Sources */,
 				B10000010000000000000009 /* ApkgImportService.swift in Sources */,
 				B10000010000000000000002 /* KeychainHelper.swift in Sources */,
 				B10000010000000000000011 /* RootView.swift in Sources */,
@@ -259,6 +266,7 @@
 				B1000001000000000000001A /* KiriTheme.swift in Sources */,
 				B10000010000000000000010 /* LoginView.swift in Sources */,
 				A10000010000000000000010 /* DeckListView.swift in Sources */,
+				B1000001000000000000001F /* BrowseView.swift in Sources */,
 				B10000010000000000000012 /* DeckDetailView.swift in Sources */,
 				A10000010000000000000009 /* ReviewView.swift in Sources */,
 				B10000010000000000000013 /* ImportView.swift in Sources */,

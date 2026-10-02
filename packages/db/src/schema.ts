@@ -115,6 +115,8 @@ export const cards = pgTable(
     sourcePageId: uuid("source_page_id").references((): AnyPgColumn => notePages.id, {
       onDelete: "set null",
     }),
+    suspended: boolean("suspended").notNull().default(false),
+    flag: integer("flag").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -122,6 +124,46 @@ export const cards = pgTable(
     index("cards_deck_id_idx").on(table.deckId),
     index("cards_source_note_id_idx").on(table.sourceNoteId),
   ],
+);
+
+export const tags = pgTable(
+  "tags",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("tags_user_id_name_idx").on(table.userId, table.name)],
+);
+
+export const cardTags = pgTable(
+  "card_tags",
+  {
+    cardId: uuid("card_id")
+      .notNull()
+      .references(() => cards.id, { onDelete: "cascade" }),
+    tagId: uuid("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+  },
+  (table) => [primaryKey({ columns: [table.cardId, table.tagId] })],
+);
+
+export const savedSearches = pgTable(
+  "saved_searches",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    query: text("query").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("saved_searches_user_id_idx").on(table.userId)],
 );
 
 export const notes = pgTable(
@@ -237,6 +279,33 @@ export const cardsRelations = relations(cards, ({ one, many }) => ({
     references: [notePages.id],
   }),
   reviewStates: many(reviewStates),
+  cardTags: many(cardTags),
+}));
+
+export const tagsRelations = relations(tags, ({ one, many }) => ({
+  user: one(users, {
+    fields: [tags.userId],
+    references: [users.id],
+  }),
+  cardTags: many(cardTags),
+}));
+
+export const cardTagsRelations = relations(cardTags, ({ one }) => ({
+  card: one(cards, {
+    fields: [cardTags.cardId],
+    references: [cards.id],
+  }),
+  tag: one(tags, {
+    fields: [cardTags.tagId],
+    references: [tags.id],
+  }),
+}));
+
+export const savedSearchesRelations = relations(savedSearches, ({ one }) => ({
+  user: one(users, {
+    fields: [savedSearches.userId],
+    references: [users.id],
+  }),
 }));
 
 export const reviewStatesRelations = relations(reviewStates, ({ one }) => ({
@@ -256,3 +325,6 @@ export type Card = typeof cards.$inferSelect;
 export type Note = typeof notes.$inferSelect;
 export type NotePage = typeof notePages.$inferSelect;
 export type ReviewState = typeof reviewStates.$inferSelect;
+export type Tag = typeof tags.$inferSelect;
+export type CardTag = typeof cardTags.$inferSelect;
+export type SavedSearch = typeof savedSearches.$inferSelect;

@@ -4,6 +4,25 @@ import { cards, decks, notePages, notes, reviewStates } from "@kiri/db";
 import { AiImportInputSchema, stubAiImport } from "@kiri/schema";
 import { GraphQLError } from "graphql";
 import { and, asc, count, desc, eq, inArray, lte, max, sql } from "drizzle-orm";
+import {
+  findDuplicateCardGroups,
+  findReplaceInCardsForUser,
+  moveCardsForUser,
+  searchCardsForUser,
+  type BrowseCardRow,
+} from "../browse/search-cards.js";
+import {
+  addTagsToCardsForUser,
+  createSavedSearchForUser,
+  deleteSavedSearchForUser,
+  listSavedSearchesForUser,
+  listTagsForUser,
+  removeTagsFromCardsForUser,
+  resetReviewStatesForUser,
+  setCardsDueDateForUser,
+  setCardsFlagForUser,
+  setCardsSuspendedForUser,
+} from "../browse/card-meta.js";
 import type { GraphQLContext } from "../context.js";
 import { calculateSm2 } from "../srs/sm2.js";
 
@@ -230,6 +249,8 @@ const CardType = builder.objectRef<{
   backText: string;
   frontPencilData: Buffer | null;
   backPencilData: Buffer | null;
+  suspended?: boolean;
+  flag?: number;
   createdAt: Date;
   updatedAt: Date;
 }>("Card");
@@ -240,6 +261,12 @@ CardType.implement({
     deckId: t.exposeString("deckId"),
     frontText: t.exposeString("frontText"),
     backText: t.exposeString("backText"),
+    suspended: t.boolean({
+      resolve: (card) => card.suspended ?? false,
+    }),
+    flag: t.int({
+      resolve: (card) => card.flag ?? 0,
+    }),
     frontPencilData: t.string({
       nullable: true,
       resolve: (card) =>
@@ -385,6 +412,84 @@ AiImportResultType.implement({
   }),
 });
 
+const BrowseCardType = builder.objectRef<BrowseCardRow>("BrowseCard");
+
+BrowseCardType.implement({
+  fields: (t) => ({
+    id: t.exposeString("id"),
+    deckId: t.exposeString("deckId"),
+    folderTitle: t.exposeString("folderTitle"),
+    folderPath: t.exposeString("folderPath"),
+    frontText: t.exposeString("frontText"),
+    backText: t.exposeString("backText"),
+    suspended: t.exposeBoolean("suspended"),
+    flag: t.exposeInt("flag"),
+    tags: t.exposeStringList("tags"),
+    interval: t.exposeInt("interval"),
+    repetitionCount: t.exposeInt("repetitionCount"),
+    easeFactor: t.exposeFloat("easeFactor"),
+    dueDate: t.expose("dueDate", { type: "DateTime" }),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+    updatedAt: t.expose("updatedAt", { type: "DateTime" }),
+  }),
+});
+
+const SearchCardsResultType = builder.objectRef<{ total: number; items: BrowseCardRow[] }>(
+  "SearchCardsResult",
+);
+
+SearchCardsResultType.implement({
+  fields: (t) => ({
+    total: t.exposeInt("total"),
+    items: t.field({
+      type: [BrowseCardType],
+      resolve: (parent) => parent.items,
+    }),
+  }),
+});
+
+const TagType = builder.objectRef<{ id: string; name: string; createdAt: Date }>("Tag");
+
+TagType.implement({
+  fields: (t) => ({
+    id: t.exposeString("id"),
+    name: t.exposeString("name"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+  }),
+});
+
+const SavedSearchType = builder.objectRef<{
+  id: string;
+  name: string;
+  query: string;
+  createdAt: Date;
+}>("SavedSearch");
+
+SavedSearchType.implement({
+  fields: (t) => ({
+    id: t.exposeString("id"),
+    name: t.exposeString("name"),
+    query: t.exposeString("query"),
+    createdAt: t.expose("createdAt", { type: "DateTime" }),
+  }),
+});
+
+const DuplicateCardGroupType = builder.objectRef<{
+  normalizedFront: string;
+  sampleFront: string;
+  cardIds: string[];
+  count: number;
+}>("DuplicateCardGroup");
+
+DuplicateCardGroupType.implement({
+  fields: (t) => ({
+    normalizedFront: t.exposeString("normalizedFront"),
+    sampleFront: t.exposeString("sampleFront"),
+    cardIds: t.exposeStringList("cardIds"),
+    count: t.exposeInt("count"),
+  }),
+});
+
 builder.queryType({
   fields: (t) => ({
     me: t.field({
@@ -513,6 +618,71 @@ builder.queryType({
       resolve: async (_root, args, context) => {
         const user = requireUser(context);
         return getOwnedNote(context, user.userId, args.id);
+      },
+    }),
+    searchCards: t.field({
+      type: SearchCardsResultType,
+      nullable: true,
+      args: {
+        query: t.arg.string({ required: false }),
+        folderId: t.arg.string({ required: false }),
+        includeSubfolders: t.arg.boolean({ required: false, defaultValue: true }),
+        limit: t.arg.int({ required: false, defaultValue: 100 }),
+        offset: t.arg.int({ required: false, defaultValue: 0 }),
+        sortBy: t.arg.string({ required: false, defaultValue: "FRONT" }),
+        sortDir: t.arg.string({ required: false, defaultValue: "ASC" }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const sortBy = (args.sortBy ?? "FRONT") as
+          | "FRONT"
+          | "BACK"
+          | "FOLDER"
+          | "DUE"
+          | "EASE"
+          | "INTERVAL"
+          | "CREATED"
+          | "UPDATED";
+        const sortDir = args.sortDir === "DESC" ? "DESC" : "ASC";
+        return searchCardsForUser(context, user.userId, {
+          query: args.query,
+          folderId: args.folderId,
+          includeSubfolders: args.includeSubfolders ?? true,
+          limit: args.limit ?? 100,
+          offset: args.offset ?? 0,
+          sortBy,
+          sortDir,
+        });
+      },
+    }),
+    tags: t.field({
+      type: [TagType],
+      resolve: async (_root, _args, context) => {
+        const user = requireUser(context);
+        return listTagsForUser(context, user.userId);
+      },
+    }),
+    savedSearches: t.field({
+      type: [SavedSearchType],
+      resolve: async (_root, _args, context) => {
+        const user = requireUser(context);
+        return listSavedSearchesForUser(context, user.userId);
+      },
+    }),
+    duplicateCardGroups: t.field({
+      type: [DuplicateCardGroupType],
+      args: {
+        folderId: t.arg.string({ required: false }),
+        includeSubfolders: t.arg.boolean({ required: false, defaultValue: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return findDuplicateCardGroups(
+          context,
+          user.userId,
+          args.folderId,
+          args.includeSubfolders ?? true,
+        );
       },
     }),
   }),
@@ -699,6 +869,128 @@ builder.mutationType({
         }
         await context.db.delete(cards).where(eq(cards.id, args.id));
         return true;
+      },
+    }),
+    moveCards: t.field({
+      type: "Int",
+      args: {
+        cardIds: t.arg.stringList({ required: true }),
+        targetDeckId: t.arg.string({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return moveCardsForUser(context, user.userId, args.cardIds, args.targetDeckId);
+      },
+    }),
+    setCardsSuspended: t.field({
+      type: "Int",
+      args: {
+        cardIds: t.arg.stringList({ required: true }),
+        suspended: t.arg.boolean({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return setCardsSuspendedForUser(context, user.userId, args.cardIds, args.suspended);
+      },
+    }),
+    setCardsFlag: t.field({
+      type: "Int",
+      args: {
+        cardIds: t.arg.stringList({ required: true }),
+        flag: t.arg.int({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return setCardsFlagForUser(context, user.userId, args.cardIds, args.flag);
+      },
+    }),
+    addTagsToCards: t.field({
+      type: "Int",
+      args: {
+        cardIds: t.arg.stringList({ required: true }),
+        tagNames: t.arg.stringList({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return addTagsToCardsForUser(context, user.userId, args.cardIds, args.tagNames);
+      },
+    }),
+    removeTagsFromCards: t.field({
+      type: "Int",
+      args: {
+        cardIds: t.arg.stringList({ required: true }),
+        tagNames: t.arg.stringList({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return removeTagsFromCardsForUser(context, user.userId, args.cardIds, args.tagNames);
+      },
+    }),
+    createSavedSearch: t.field({
+      type: SavedSearchType,
+      args: {
+        name: t.arg.string({ required: true }),
+        query: t.arg.string({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return createSavedSearchForUser(context, user.userId, args.name, args.query);
+      },
+    }),
+    deleteSavedSearch: t.field({
+      type: "Boolean",
+      args: {
+        id: t.arg.string({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return deleteSavedSearchForUser(context, user.userId, args.id);
+      },
+    }),
+    findReplaceCards: t.field({
+      type: "Int",
+      args: {
+        find: t.arg.string({ required: true }),
+        replace: t.arg.string({ required: true }),
+        useRegex: t.arg.boolean({ required: false, defaultValue: false }),
+        field: t.arg.string({ required: false, defaultValue: "BOTH" }),
+        folderId: t.arg.string({ required: false }),
+        includeSubfolders: t.arg.boolean({ required: false, defaultValue: true }),
+        cardIds: t.arg.stringList({ required: false }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        const field = (args.field ?? "BOTH") as "FRONT" | "BACK" | "BOTH";
+        return findReplaceInCardsForUser(context, user.userId, {
+          find: args.find,
+          replace: args.replace,
+          useRegex: args.useRegex ?? false,
+          field,
+          folderId: args.folderId,
+          includeSubfolders: args.includeSubfolders ?? true,
+          cardIds: args.cardIds,
+        });
+      },
+    }),
+    resetCards: t.field({
+      type: "Int",
+      args: {
+        cardIds: t.arg.stringList({ required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return resetReviewStatesForUser(context, user.userId, args.cardIds);
+      },
+    }),
+    setCardsDueDate: t.field({
+      type: "Int",
+      args: {
+        cardIds: t.arg.stringList({ required: true }),
+        dueDate: t.arg({ type: "DateTime", required: true }),
+      },
+      resolve: async (_root, args, context) => {
+        const user = requireUser(context);
+        return setCardsDueDateForUser(context, user.userId, args.cardIds, args.dueDate);
       },
     }),
     submitReview: t.field({

@@ -191,4 +191,36 @@ enum GraphQLOperations {
       deleteNotePage(id: $id)
     }
     """
+
+    static let searchCardsQuery = """
+    query($query: String, $folderId: String, $includeSubfolders: Boolean, $limit: Int, $offset: Int, $sortBy: String, $sortDir: String) {
+      searchCards(query: $query, folderId: $folderId, includeSubfolders: $includeSubfolders, limit: $limit, offset: $offset, sortBy: $sortBy, sortDir: $sortDir) {
+        total
+        items {
+          id deckId folderTitle folderPath frontText backText suspended flag tags
+          interval repetitionCount easeFactor dueDate createdAt updatedAt
+        }
+      }
+    }
+    """
+
+    static let moveCardsMutation = """
+    mutation($cardIds: [String!]!, $targetDeckId: String!) {
+      moveCards(cardIds: $cardIds, targetDeckId: $targetDeckId)
+    }
+    """
+
+    static let setCardsSuspendedMutation = """
+    mutation($cardIds: [String!]!, $suspended: Boolean!) {
+      setCardsSuspended(cardIds: $cardIds, suspended: $suspended)
+    }
+    """
+
+    static let savedSearchesQuery = """
+    query { savedSearches { id name query } }
+    """
+
+    static let tagsQuery = """
+    query { tags { id name } }
+    """
 }

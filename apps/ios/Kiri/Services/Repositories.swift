@@ -272,6 +272,86 @@ struct NoteRepository {
     }
 }
 
+struct BrowseCardDTO: Identifiable, Codable, Hashable {
+    let id: String
+    let deckId: String
+    let folderTitle: String
+    let folderPath: String
+    let frontText: String
+    let backText: String
+    let suspended: Bool
+    let flag: Int
+    let tags: [String]
+    let interval: Int
+    let repetitionCount: Int
+    let easeFactor: Double
+    let dueDate: String
+    let createdAt: String
+    let updatedAt: String
+}
+
+struct BrowseRepository {
+    private let client = GraphQLClient()
+
+    struct SearchResult {
+        let total: Int
+        let items: [BrowseCardDTO]
+    }
+
+    func searchCards(
+        query: String?,
+        folderId: String?,
+        includeSubfolders: Bool,
+        limit: Int,
+        sortBy: String = "FRONT",
+        sortDir: String = "ASC"
+    ) async throws -> SearchResult {
+        struct Payload: Decodable {
+            let total: Int
+            let items: [BrowseCardDTO]
+        }
+        struct Response: Decodable {
+            let searchCards: Payload?
+        }
+        var variables: [String: Any] = [
+            "includeSubfolders": includeSubfolders,
+            "limit": limit,
+            "offset": 0,
+            "sortBy": sortBy,
+            "sortDir": sortDir,
+        ]
+        if let query { variables["query"] = query }
+        if let folderId { variables["folderId"] = folderId }
+        let data = try await client.fetch(
+            query: GraphQLOperations.searchCardsQuery,
+            variables: variables,
+            as: Response.self
+        )
+        guard let result = data.searchCards else {
+            throw GraphQLError.requestFailed("Folder not found")
+        }
+        return SearchResult(total: result.total, items: result.items)
+    }
+
+    func moveCards(cardIds: [String], targetDeckId: String) async throws {
+        struct Response: Decodable { let moveCards: Int }
+        _ = try await client.fetch(
+            query: GraphQLOperations.moveCardsMutation,
+            variables: ["cardIds": cardIds, "targetDeckId": targetDeckId],
+            as: Response.self
+        )
+    }
+
+    func setSuspended(cardIds: [String], suspended: Bool) async throws {
+        struct Response: Decodable { let setCardsSuspended: Int }
+        _ = try await client.fetch(
+            query: GraphQLOperations.setCardsSuspendedMutation,
+            variables: ["cardIds": cardIds, "suspended": suspended],
+            as: Response.self
+        )
+    }
+}
+
 struct RecallRepository {
     private let client = GraphQLClient()
 

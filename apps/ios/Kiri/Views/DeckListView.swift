@@ -56,6 +56,11 @@ struct DeckListView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Refresh") { Task { await load() } }
                 }
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationLink("Browse") {
+                        BrowseView()
+                    }
+                }
             }
             .refreshable { await load() }
             .navigationDestination(for: DeckDTO.self) { deck in

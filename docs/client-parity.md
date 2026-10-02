@@ -7,6 +7,7 @@ Both clients talk to the same GraphQL API and Better Auth endpoints. Keep this t
 | Sign in / up | `/login` | `LoginView` | `POST /api/auth/sign-in/email`, `sign-up/email` |
 | Sign out | decks header | account menu | `POST /api/auth/sign-out` + clear Keychain |
 | Folder tree | `/decks` | `DeckListView` | `decks` query, `createDeck`, `deleteDeck` |
+| Browse | `/browse` (shortcut **B**) | `BrowseView` | `searchCards`, `moveCards`, `setCardsSuspended`, `setCardsFlag`, tags, saved searches, `findReplaceCards`, `duplicateCardGroups`, `resetCards`, `setCardsDueDate` |
 | Folder detail | `/decks/[id]` | `DeckDetailView` | `cards`, `notes`, `createDeck(parentId)`, `upsertCard`, `deleteCard`, `deleteDeck` |
 | Notebooks | folder page (list only) | `NotebookEditorView` | `notes`, `note`, `createNote`, `updateNote`, `upsertNotePage`, `addNotePage`, `deleteNotePage` |
 | Study | `/decks/[id]/study` | `StudyView` | `dueCards`, `submitReview` |
