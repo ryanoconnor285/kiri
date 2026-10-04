@@ -3,6 +3,7 @@ import SwiftUI
 struct MultipleChoiceStudyView: View {
     @Environment(\.colorScheme) private var colorScheme
 
+    let cardId: String
     let questionHtml: String
     let choices: [String]
     let allowMultiple: Bool
@@ -47,6 +48,7 @@ struct MultipleChoiceStudyView: View {
             RoundedRectangle(cornerRadius: KiriTheme.radiusLG)
                 .stroke(KiriTheme.border(colorScheme), lineWidth: 1)
         )
+        .onChange(of: cardId) { _, _ in selected = [] }
         .onChange(of: shuffleSeed) { _, _ in selected = [] }
         .onChange(of: revealed) { _, isRevealed in
             if !isRevealed { selected = [] }
@@ -73,9 +75,9 @@ struct MultipleChoiceStudyView: View {
         } label: {
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: boxIcon(isSelected: isSelected))
-                    .foregroundStyle(isCorrect ? KiriTheme.success(colorScheme) : .primary)
+                    .foregroundStyle(isCorrect ? KiriTheme.success(colorScheme) : optionForeground)
                 Text(choices[choiceIndex])
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(optionForeground)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -84,7 +86,13 @@ struct MultipleChoiceStudyView: View {
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
-        .disabled(revealed)
+        .allowsHitTesting(!revealed)
+    }
+
+    private var optionForeground: Color {
+        colorScheme == .dark
+            ? Color(red: 0.95, green: 0.96, blue: 0.97)
+            : Color(red: 0.11, green: 0.11, blue: 0.12)
     }
 
     private func boxIcon(isSelected: Bool) -> String {

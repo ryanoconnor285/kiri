@@ -96,6 +96,7 @@ struct StudyView: View {
     private func studyStage(item: StudyQueueItem, isMc: Bool) -> some View {
         if isMc, let render = studyRender, let choices = render.mcChoices {
             MultipleChoiceStudyView(
+                cardId: item.id,
                 questionHtml: render.frontHtml,
                 choices: choices,
                 allowMultiple: render.mcAllowMultiple ?? false,
@@ -108,6 +109,7 @@ struct StudyView: View {
                     Task { await loadStudyRender(cardId: item.id, revealed: true) }
                 }
             )
+            .id("\(item.id)-\(item.meta.presentations)")
         } else {
             cardFace(item.card)
                 .onTapGesture {

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CardFace } from "./CardFace";
 
 type Props = {
+  cardId: string;
   questionHtml: string;
   choices: string[];
   allowMultiple: boolean;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export function MultipleChoiceStudy({
+  cardId,
   questionHtml,
   choices,
   allowMultiple,
@@ -35,7 +37,7 @@ export function MultipleChoiceStudy({
 
   useEffect(() => {
     setSelected(new Set());
-  }, [shuffleSeed]);
+  }, [cardId, shuffleSeed]);
 
   function toggle(index: number) {
     if (revealed) return;
@@ -64,9 +66,11 @@ export function MultipleChoiceStudy({
 
   return (
     <div className="kiri-mc-shell">
-      {modelCss ? <style>{modelCss}</style> : null}
-      <div className="kiri-mc-question">
-        <CardFace text={questionHtml} />
+      <div className="kiri-mc-prose">
+        {modelCss ? <style>{modelCss}</style> : null}
+        <div className="kiri-mc-question">
+          <CardFace text={questionHtml} />
+        </div>
       </div>
       <p className="muted small">
         {allowMultiple ? "Check all that apply." : "Select one answer."}
@@ -74,7 +78,7 @@ export function MultipleChoiceStudy({
       <div className="kiri-mc-options" role="group">
         {order.map((choiceIndex) => (
           <button
-            key={`${shuffleSeed}-${choiceIndex}`}
+            key={`${cardId}-${shuffleSeed}-${choiceIndex}`}
             type="button"
             className={optionClass(choiceIndex)}
             onClick={() => toggle(choiceIndex)}
@@ -89,7 +93,7 @@ export function MultipleChoiceStudy({
         </button>
       )}
       {revealed && explanationHtml.trim() && (
-        <div className="kiri-mc-explanation">
+        <div className="kiri-mc-prose kiri-mc-explanation">
           <CardFace text={explanationHtml} />
         </div>
       )}

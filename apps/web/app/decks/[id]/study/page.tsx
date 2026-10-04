@@ -229,6 +229,8 @@ export default function StudyPage() {
       <div className="study-stage">
         {isMc ? (
           <MultipleChoiceStudy
+            key={`${current.cardId}:${current.presentations}`}
+            cardId={current.cardId}
             questionHtml={studyRender!.frontHtml}
             choices={studyRender!.mcChoices!}
             allowMultiple={studyRender!.mcAllowMultiple ?? false}

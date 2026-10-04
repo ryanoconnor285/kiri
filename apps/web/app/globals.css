@@ -1049,7 +1049,9 @@ a:hover {
   gap: 0.35rem;
 }
 
-.kiri-mc-option {
+.kiri-mc-shell .kiri-mc-option {
+  appearance: none;
+  -webkit-appearance: none;
   display: block;
   width: 100%;
   text-align: left;
@@ -1057,34 +1059,46 @@ a:hover {
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface);
-  color: var(--text);
+  color: var(--face-text);
+  -webkit-text-fill-color: var(--face-text);
   cursor: pointer;
   font-size: 0.95rem;
   line-height: 1.35;
   opacity: 1;
 }
 
-.kiri-mc-option:hover:not(:disabled) {
+.kiri-mc-shell .kiri-mc-option:hover:not(:disabled),
+.kiri-mc-shell .kiri-mc-option:focus,
+.kiri-mc-shell .kiri-mc-option:focus-visible,
+.kiri-mc-shell .kiri-mc-option:active {
+  color: var(--face-text);
+  -webkit-text-fill-color: var(--face-text);
+}
+
+.kiri-mc-shell .kiri-mc-option:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
 }
 
-.kiri-mc-option.is-selected {
-  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+.kiri-mc-shell .kiri-mc-option.is-selected {
+  background: color-mix(in srgb, var(--accent) 18%, var(--face-matte));
   border-color: var(--accent);
-  color: var(--text);
+  color: var(--face-text);
+  -webkit-text-fill-color: var(--face-text);
   font-weight: 500;
 }
 
-.kiri-mc-option.is-correct {
-  background: color-mix(in srgb, var(--success) 24%, var(--surface));
+.kiri-mc-shell .kiri-mc-option.is-correct {
+  background: color-mix(in srgb, var(--success) 20%, var(--face-matte));
   border-color: var(--success);
-  color: var(--text);
+  color: var(--face-text);
+  -webkit-text-fill-color: var(--face-text);
 }
 
-.kiri-mc-option.is-incorrect {
-  background: color-mix(in srgb, var(--danger) 18%, var(--surface));
+.kiri-mc-shell .kiri-mc-option.is-incorrect {
+  background: color-mix(in srgb, var(--danger) 16%, var(--face-matte));
   border-color: var(--danger);
-  color: var(--text);
+  color: var(--face-text);
+  -webkit-text-fill-color: var(--face-text);
 }
 
 .kiri-type-in-input {
