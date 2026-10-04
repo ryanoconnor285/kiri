@@ -62,6 +62,10 @@ private struct BlankPart: Identifiable {
 }
 
 enum BlankMarkup {
+    static func hasBlanks(_ text: String) -> Bool {
+        text.contains("[[") && text.contains("]]")
+    }
+
     static func parenthesesToBlanks(_ text: String) -> String {
         guard let regex = try? NSRegularExpression(pattern: #"\(([^()]+)\)"#) else { return text }
         let ns = text as NSString

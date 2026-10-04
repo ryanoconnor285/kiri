@@ -36,7 +36,7 @@ Logic must match between:
 
 **Multiple choice** notes use `cardStudyRender` (`studyMode: MULTIPLE_CHOICE`). Options shuffle with the same LCG seed as `@kiri/card-templates` `shuffleIndices(presentations)`. Correct indices only when `revealed: true`. See [note-types.md](./note-types.md).
 
-**Word blanks:** `[[increases]]` in front text (or convert `(increases)` with **Block parentheses**). Basic cards hide every blank on one card; cloze notes expand each `[[ ]]` to its own card. Web `BlankedFace` and iOS `BlankedText` start covered; tap a chip to peek. Reveal/flip shows all.
+**Word blanks:** `[[increases]]` in front text (or convert `(increases)` with **Block parentheses**). These cards are front-only — Back is optional notes. Study stays on the front and uncovers the words. Cloze notes expand each `[[ ]]` to its own card. Web `BlankedFace` and iOS `BlankedText` start covered; tap a chip to peek.
 
 ## Notebooks (paged)
 

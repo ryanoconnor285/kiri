@@ -31,6 +31,12 @@ struct DeckDetailView: View {
         decks.filter { $0.parentId == deckId }
     }
 
+    private var canAddCard: Bool {
+        let front = frontText.trimmingCharacters(in: .whitespaces)
+        let back = backText.trimmingCharacters(in: .whitespaces)
+        return !front.isEmpty && (BlankMarkup.hasBlanks(front) || !back.isEmpty)
+    }
+
     var body: some View {
         List {
             if let error {
@@ -107,7 +113,7 @@ struct DeckDetailView: View {
             }
 
             Section("Add card") {
-                Text("Hide words with [[increases]], or write Y (increases) as X (decreases) and tap Block parentheses. On a basic card both start covered.")
+                Text("Hide words with [[increases]], or write Y (increases) as X (decreases) and tap Block parentheses. Blocked-word cards are front-only — revealing uncovers the words.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                 TextField("Front (prompt)", text: $frontText, axis: .vertical)
@@ -115,7 +121,7 @@ struct DeckDetailView: View {
                     frontText = BlankMarkup.parenthesesToBlanks(frontText)
                 }
                 .disabled(!frontText.contains("("))
-                TextField("Back (answer)", text: $backText, axis: .vertical)
+                TextField(BlankMarkup.hasBlanks(frontText) ? "Extra notes (optional)" : "Back (answer)", text: $backText, axis: .vertical)
                 if !frontText.trimmingCharacters(in: .whitespaces).isEmpty {
                     BlankedText(text: frontText, revealed: false)
                         .frame(minHeight: 36, alignment: .leading)
@@ -123,7 +129,7 @@ struct DeckDetailView: View {
                 Button(savingCard ? "Saving…" : "Add card") {
                     Task { await addCard() }
                 }
-                .disabled(savingCard || frontText.trimmingCharacters(in: .whitespaces).isEmpty || backText.trimmingCharacters(in: .whitespaces).isEmpty)
+                .disabled(savingCard || !canAddCard)
             }
 
             Section("Cards") {

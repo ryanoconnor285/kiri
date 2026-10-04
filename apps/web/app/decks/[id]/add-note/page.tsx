@@ -107,8 +107,8 @@ export default function AddCollectionNotePage() {
       {(selected?.kind === "cloze" || selected?.kind === "basic") && (
         <p className="muted small" style={{ marginTop: "0.5rem" }}>
           Hide words with <code>[[increases]]</code>. Example:{" "}
-          <code>Y [[increases]] as X [[decreases]]</code>. On Basic, both start hidden (tap to peek). On
-          Cloze, each blank becomes its own card so one word is hidden at a time.{" "}
+          <code>Y [[increases]] as X [[decreases]]</code>. The card is the prompt with words
+          covered — Back is optional. On Cloze, each blank becomes its own card.{" "}
           <code>(increases)</code> can be converted with Block parentheses.
         </p>
       )}

@@ -10,7 +10,7 @@ import {
   deleteCardConfirmMessage,
   deleteDeckConfirmMessage,
 } from "@/lib/deck-tree";
-import { parenthesesToBlanks } from "@kiri/card-templates";
+import { hasBracketBlanks, parenthesesToBlanks } from "@kiri/card-templates";
 import { BlankedFace } from "@/components/BlankedFace";
 import { CardFace } from "@/components/CardFace";
 import { FitCardBody } from "@/components/FitCardBody";
@@ -139,7 +139,8 @@ export default function DeckDetailPage() {
   async function addCard() {
     const front = frontText.trim();
     const back = backText.trim();
-    if (!front || !back || savingCard) return;
+    if (!front || savingCard) return;
+    if (!back && !hasBracketBlanks(front)) return;
     setSavingCard(true);
     setCardFeedback(null);
     try {
@@ -357,8 +358,10 @@ export default function DeckDetailPage() {
         <div className="card stack" style={{ marginBottom: "1rem" }}>
           <p className="muted" style={{ margin: 0 }}>
             Add cards one at a time to <strong>{deck.title}</strong>. KaTeX math is supported
-            (e.g. <code>$E = mc^2$</code>). Hide words with <code>[[increases]]</code>, or write{" "}
-            <code>Y (increases) as X (decreases)</code> and tap Block parentheses.
+            (e.g. <code>$E = mc^2$</code>). Hide words with <code>[[increases]]</code>, or
+            write <code>Y (increases) as X (decreases)</code> and tap Block parentheses. A
+            blocked-word card is front-only — revealing uncovers the words. Back is
+            optional extra notes.
           </p>
           <div className="stack">
             <label className="stack" style={{ gap: "0.35rem" }}>
@@ -386,10 +389,12 @@ export default function DeckDetailPage() {
               </button>
             </label>
             <label className="stack" style={{ gap: "0.35rem" }}>
-              <span className="muted">Back (answer)</span>
+              <span className="muted">
+                {hasBracketBlanks(frontText) ? "Extra notes (optional)" : "Back (answer)"}
+              </span>
               <textarea
                 className="input textarea"
-                placeholder="Answer…"
+                placeholder={hasBracketBlanks(frontText) ? "Optional…" : "Answer…"}
                 value={backText}
                 rows={3}
                 onChange={(e) => setBackText(e.target.value)}
@@ -424,7 +429,11 @@ export default function DeckDetailPage() {
             <button
               type="button"
               className="btn btn-primary"
-              disabled={savingCard || !frontText.trim() || !backText.trim()}
+              disabled={
+                savingCard ||
+                !frontText.trim() ||
+                (!backText.trim() && !hasBracketBlanks(frontText))
+              }
               onClick={addCard}
             >
               {savingCard ? "Saving…" : "Add card"}
@@ -460,15 +469,32 @@ export default function DeckDetailPage() {
                     }
                   }}
                 >
-                  <p className="flashcard-label">{showBack ? "Back" : "Front"}</p>
+                  <p className="flashcard-label">
+                    {showBack
+                      ? hasBracketBlanks(card.frontText)
+                        ? "Answer"
+                        : "Back"
+                      : "Front"}
+                  </p>
                   <FitCardBody contentKey={`${card.id}:${showBack ? "b" : "f"}`}>
                     <BlankedFace
-                      text={showBack ? card.backText : card.frontText}
+                      text={
+                        hasBracketBlanks(card.frontText) || !showBack
+                          ? card.frontText
+                          : card.backText
+                      }
                       revealed={showBack}
                       interactive={!showBack}
                     />
+                    {showBack &&
+                    hasBracketBlanks(card.frontText) &&
+                    card.backText.trim() ? (
+                      <CardFace text={card.backText} />
+                    ) : null}
                   </FitCardBody>
-                  <p className="flashcard-hint">Tap to flip</p>
+                  <p className="flashcard-hint">
+                    {hasBracketBlanks(card.frontText) ? "Tap to reveal" : "Tap to flip"}
+                  </p>
                 </div>
                 <button
                   type="button"

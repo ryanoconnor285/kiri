@@ -140,15 +140,20 @@ struct StudyView: View {
                     PencilPreviewView(drawing: drawing)
                         .frame(height: 160)
                 }
-                let text = showingBack ? card.backText : card.frontText
+                let blanks = BlankMarkup.hasBlanks(card.frontText)
+                let text = blanks ? card.frontText : (showingBack ? card.backText : card.frontText)
                 if !text.isEmpty {
-                    if text.contains("[[") {
+                    if blanks {
                         BlankedText(text: text, revealed: showingBack)
                             .frame(minHeight: 60, alignment: .leading)
                     } else {
                         KatexView(latex: text)
                             .frame(minHeight: 60)
                     }
+                }
+                if showingBack && blanks && !card.backText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    KatexView(latex: card.backText)
+                        .frame(minHeight: 32)
                 }
             }
             .padding()

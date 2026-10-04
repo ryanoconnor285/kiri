@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { hasBracketBlanks } from "@kiri/card-templates";
 import { BlankedFace } from "@/components/BlankedFace";
 import { CardFace } from "@/components/CardFace";
 import { FitCardBody } from "@/components/FitCardBody";
@@ -206,7 +207,12 @@ export default function StudyPage() {
   const isMc = mode === "MULTIPLE_CHOICE" && studyRender?.mcChoices?.length;
   const isTypeIn = mode === "TYPE_IN" && studyRender?.typeInField;
 
-  const faceText = revealed ? current.card.backText : current.card.frontText;
+  const frontHasBlanks = hasBracketBlanks(current.card.frontText);
+  const faceText = frontHasBlanks
+    ? current.card.frontText
+    : revealed
+      ? current.card.backText
+      : current.card.frontText;
 
   return (
     <div className="study-shell">
@@ -276,7 +282,12 @@ export default function StudyPage() {
                   />
                 </div>
               ) : (
-                <BlankedFace text={faceText} revealed={revealed} />
+                <>
+                  <BlankedFace text={faceText} revealed={revealed} />
+                  {revealed && frontHasBlanks && current.card.backText.trim() ? (
+                    <CardFace text={current.card.backText} />
+                  ) : null}
+                </>
               )}
             </FitCardBody>
             {!revealed && !isTypeIn && (
