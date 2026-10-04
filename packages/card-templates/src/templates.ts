@@ -90,10 +90,10 @@ function applyConditionals(template: string, fields: Map<string, string>): strin
 }
 
 function applyCloze(text: string, activeOrd: number | null, reveal: boolean): string {
-  return text.replace(CLOZE_RE, (_m, n: string, answer: string, hint?: string) => {
+  return text.replace(CLOZE_RE, (_m, n: string, answer: string, _hint?: string) => {
     const index = Number(n);
     if (!reveal && activeOrd !== null && index === activeOrd + 1) {
-      return hint ? `[${hint}]` : "[...]";
+      return `[[${answer}]]`;
     }
     return answer;
   });

@@ -44,7 +44,7 @@ test("inlines package images into the card HTML", async () => {
   assert.match(parsed.cards[0]?.frontText ?? "", /<img/i);
 });
 
-test("renders cloze deletions as [...] on the front", async () => {
+test("renders cloze deletions as [[answer]] blanks on the front", async () => {
   const apkg = await buildApkg({
     cloze: true,
     notes: [{ fields: ["{{c1::Glycine}} is the smallest amino acid"] }],
@@ -52,7 +52,7 @@ test("renders cloze deletions as [...] on the front", async () => {
 
   const parsed = await parseApkg(apkg);
   assert.equal(parsed.cards.length, 1);
-  assert.match(parsed.cards[0]?.frontText ?? "", /\[\.\.\.\]/);
+  assert.match(parsed.cards[0]?.frontText ?? "", /\[\[Glycine\]\]/);
   assert.match(parsed.cards[0]?.backText ?? "", /Glycine/);
   assert.equal(parsed.cards[0]?.frontText.includes("Glycine is the"), false);
 });

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A10000010000000000000001 /* KiriApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000001 /* KiriApp.swift */; };
 		A10000010000000000000006 /* KatexView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000006 /* KatexView.swift */; };
+		B1000001000000000000001D /* BlankedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001D /* BlankedText.swift */; };
 		A10000010000000000000007 /* PencilCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000007 /* PencilCanvasView.swift */; };
 		A10000010000000000000008 /* CardEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000008 /* CardEditorView.swift */; };
 		A10000010000000000000009 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000009 /* ReviewView.swift */; };
@@ -45,6 +46,7 @@
 /* Begin PBXFileReference section */
 		A20000010000000000000001 /* KiriApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KiriApp.swift; sourceTree = "<group>"; };
 		A20000010000000000000006 /* KatexView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KatexView.swift; sourceTree = "<group>"; };
+		B2000001000000000000001D /* BlankedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlankedText.swift; sourceTree = "<group>"; };
 		A20000010000000000000007 /* PencilCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PencilCanvasView.swift; sourceTree = "<group>"; };
 		A20000010000000000000008 /* CardEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardEditorView.swift; sourceTree = "<group>"; };
 		A20000010000000000000009 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 				B20000010000000000000013 /* ImportView.swift */,
 				A20000010000000000000008 /* CardEditorView.swift */,
 				A20000010000000000000006 /* KatexView.swift */,
+				B2000001000000000000001D /* BlankedText.swift */,
 				A20000010000000000000007 /* PencilCanvasView.swift */,
 				B2000001000000000000001B /* PaperBackgroundView.swift */,
 				B2000001000000000000001C /* NotebookEditorView.swift */,
@@ -280,6 +283,7 @@
 				B10000010000000000000013 /* ImportView.swift in Sources */,
 				A10000010000000000000008 /* CardEditorView.swift in Sources */,
 				A10000010000000000000006 /* KatexView.swift in Sources */,
+				B1000001000000000000001D /* BlankedText.swift in Sources */,
 				A10000010000000000000007 /* PencilCanvasView.swift in Sources */,
 				B1000001000000000000001B /* PaperBackgroundView.swift in Sources */,
 				B1000001000000000000001C /* NotebookEditorView.swift in Sources */,

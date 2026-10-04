@@ -39,6 +39,7 @@ Met (M at protein termini)
 Alternatives that also parse:
 • Front: … / Back: … on separate lines in the same block
 • One line per card: Term | definition
+• Hide words on the prompt with [[increases]] — e.g. Y [[increases]] as X [[decreases]]. Or write Y (increases) as X (decreases) and use Block parentheses in the app.
 
 FORMAT 2 — Multiple choice (use when options and “check all that apply” fit the material)
 Repeat this block for each question; blank line between blocks.

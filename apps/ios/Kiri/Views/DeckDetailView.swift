@@ -107,8 +107,19 @@ struct DeckDetailView: View {
             }
 
             Section("Add card") {
+                Text("Hide words with [[increases]], or write Y (increases) as X (decreases) and tap Block parentheses. On a basic card both start covered.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                 TextField("Front (prompt)", text: $frontText, axis: .vertical)
+                Button("Block parentheses") {
+                    frontText = BlankMarkup.parenthesesToBlanks(frontText)
+                }
+                .disabled(!frontText.contains("("))
                 TextField("Back (answer)", text: $backText, axis: .vertical)
+                if !frontText.trimmingCharacters(in: .whitespaces).isEmpty {
+                    BlankedText(text: frontText, revealed: false)
+                        .frame(minHeight: 36, alignment: .leading)
+                }
                 Button(savingCard ? "Saving…" : "Add card") {
                     Task { await addCard() }
                 }
@@ -118,8 +129,8 @@ struct DeckDetailView: View {
             Section("Cards") {
                 ForEach(cards) { card in
                     VStack(alignment: .leading, spacing: 6) {
-                        KatexView(latex: card.frontText)
-                            .frame(minHeight: 40)
+                        BlankedText(text: card.frontText, revealed: false)
+                            .frame(minHeight: 40, alignment: .leading)
                         KatexView(latex: card.backText)
                             .frame(minHeight: 32)
                             .lineLimit(3)

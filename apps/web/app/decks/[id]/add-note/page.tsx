@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
+import { parenthesesToBlanks } from "@kiri/card-templates";
 import { gqlFetch } from "@/lib/graphql";
 
 type NoteModel = {
@@ -103,6 +104,14 @@ export default function AddCollectionNotePage() {
           Choices: one option per line. Correct: comma-separated indices (0-based). AllowMultiple: yes/no.
         </p>
       )}
+      {(selected?.kind === "cloze" || selected?.kind === "basic") && (
+        <p className="muted small" style={{ marginTop: "0.5rem" }}>
+          Hide words with <code>[[increases]]</code>. Example:{" "}
+          <code>Y [[increases]] as X [[decreases]]</code>. On Basic, both start hidden (tap to peek). On
+          Cloze, each blank becomes its own card so one word is hidden at a time.{" "}
+          <code>(increases)</code> can be converted with Block parentheses.
+        </p>
+      )}
       {selected?.fields.map((f) => (
         <label key={f.name} style={{ display: "block", marginTop: "0.75rem" }}>
           {f.name}
@@ -113,6 +122,25 @@ export default function AddCollectionNotePage() {
               value={values[f.name] ?? ""}
               onChange={(e) => setValues((v) => ({ ...v, [f.name]: e.target.value }))}
             />
+          ) : f.name === "Text" || f.name === "Front" ? (
+            <>
+              <textarea
+                className="browse-search"
+                style={{ width: "100%", minHeight: 80 }}
+                value={values[f.name] ?? ""}
+                onChange={(e) => setValues((v) => ({ ...v, [f.name]: e.target.value }))}
+              />
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ marginTop: 6 }}
+                onClick={() =>
+                  setValues((v) => ({ ...v, [f.name]: parenthesesToBlanks(v[f.name] ?? "") }))
+                }
+              >
+                Block parentheses
+              </button>
+            </>
           ) : (
             <input
               className="browse-search"

@@ -1,4 +1,4 @@
-import { clozeFieldNameFromModel, distinctClozeNumbers } from "./cloze.js";
+import { clozeFieldNameFromModel, clozeSourceText, distinctClozeNumbers } from "./cloze.js";
 import { extractTypeInField, renderCardSides, stripHtml } from "./templates.js";
 import type {
   CardTemplateDef,
@@ -42,7 +42,8 @@ export function generateCardsFromNote(
 
   if (kind === "cloze") {
     const clozeField = clozeFieldNameFromModel(kind, fields);
-    const text = fields.get(clozeField) ?? "";
+    const text = clozeSourceText(fields.get(clozeField) ?? "");
+    fields.set(clozeField, text);
     const numbers = distinctClozeNumbers(text);
     const template = sortedTemplates[0] ?? {
       ord: 0,

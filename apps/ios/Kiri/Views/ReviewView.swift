@@ -142,8 +142,13 @@ struct StudyView: View {
                 }
                 let text = showingBack ? card.backText : card.frontText
                 if !text.isEmpty {
-                    KatexView(latex: text)
-                        .frame(minHeight: 60)
+                    if text.contains("[[") {
+                        BlankedText(text: text, revealed: showingBack)
+                            .frame(minHeight: 60, alignment: .leading)
+                    } else {
+                        KatexView(latex: text)
+                            .frame(minHeight: 60)
+                    }
                 }
             }
             .padding()

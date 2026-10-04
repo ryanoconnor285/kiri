@@ -589,7 +589,8 @@ a:hover {
   max-height: none;
 }
 
-.study-card:disabled {
+.study-card:disabled,
+.study-card[tabindex="-1"] {
   cursor: default;
   opacity: 1;
 }
@@ -1103,6 +1104,41 @@ a:hover {
 
 .kiri-type-in-input {
   margin-top: 0.75rem;
+}
+
+.kiri-blanked-face {
+  display: inline;
+}
+
+.kiri-blank {
+  display: inline;
+  margin: 0 0.1em;
+  padding: 0 0.2em;
+  border: none;
+  border-radius: 4px;
+  font: inherit;
+  line-height: 1.35;
+  cursor: pointer;
+  vertical-align: baseline;
+}
+
+.kiri-blank.is-covered {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: var(--face-text);
+  box-decoration-break: clone;
+  user-select: none;
+}
+
+.kiri-blank.is-open {
+  color: var(--face-text);
+  -webkit-text-fill-color: var(--face-text);
+  background: color-mix(in srgb, var(--accent) 16%, var(--face-matte));
+}
+
+button.kiri-blank {
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 @media (max-width: 960px) {

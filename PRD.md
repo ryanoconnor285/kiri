@@ -84,7 +84,7 @@ Do **not** replace this with Again / Hard / Good / Easy in P0. Those are differe
 
 ### Card content
 
-Front/back text (KaTeX) and optional PencilKit faces (iPad). Import: text/AI stub and `.apkg`.
+Front/back text (KaTeX) and optional PencilKit faces (iPad). Import: text/AI stub and `.apkg`. Hide words with `[[increases]]` (or convert `(increases)` via Block parentheses). Basic: all blanks start covered on one card. Cloze: one card per blank.
 
 P1+: cloze, image occlusion, reverse cards, note→card from a selected region, card→jump to source page (`sourceNoteId` / `sourcePageId` reserved on cards).
 

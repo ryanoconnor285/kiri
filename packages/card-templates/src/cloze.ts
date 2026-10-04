@@ -1,4 +1,11 @@
+import { expandBracketBlanksToCloze, hasBracketBlanks } from "./blanks.js";
+
 const CLOZE_NUM_RE = /\{\{c(\d+)::/gs;
+
+/** Expand `[[word]]` markers, then list cloze numbers. */
+export function clozeSourceText(text: string): string {
+  return hasBracketBlanks(text) ? expandBracketBlanksToCloze(text) : text;
+}
 
 /** Distinct cloze numbers (1-based) in field text, sorted ascending. */
 export function distinctClozeNumbers(text: string): number[] {
@@ -9,6 +16,10 @@ export function distinctClozeNumbers(text: string): number[] {
     found.add(Number(match[1]));
   }
   return [...found].sort((a, b) => a - b);
+}
+
+export function distinctClozeNumbersFromSource(text: string): number[] {
+  return distinctClozeNumbers(clozeSourceText(text));
 }
 
 export function clozeFieldNameFromModel(kind: string, fields: Map<string, string>): string {

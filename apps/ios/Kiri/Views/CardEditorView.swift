@@ -103,9 +103,15 @@ struct CardEditorView: View {
         VStack(alignment: .leading, spacing: 8) {
             TextField("LaTeX / text", text: showingFront ? $frontText : $backText, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
+            if showingFront {
+                Button("Block parentheses") {
+                    frontText = BlankMarkup.parenthesesToBlanks(frontText)
+                }
+                .disabled(!frontText.contains("("))
+            }
             if !(showingFront ? frontText : backText).isEmpty {
-                KatexView(latex: showingFront ? frontText : backText)
-                    .frame(minHeight: 44)
+                BlankedText(text: showingFront ? frontText : backText, revealed: !showingFront)
+                    .frame(minHeight: 44, alignment: .leading)
             }
         }
         .padding(.horizontal, 8)

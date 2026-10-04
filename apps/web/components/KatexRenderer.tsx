@@ -8,6 +8,7 @@ type KatexRendererProps = {
   text: string;
   /** Display mode only for a whole-card formula line. Never applied to $...$ in prose. */
   block?: boolean;
+  inline?: boolean;
 };
 
 function renderMathHtml(tex: string, display: boolean): string {
@@ -18,11 +19,12 @@ function renderMathHtml(tex: string, display: boolean): string {
   });
 }
 
-export function KatexRenderer({ text, block = false }: KatexRendererProps) {
+export function KatexRenderer({ text, block = false, inline = false }: KatexRendererProps) {
+  const Wrap = inline ? "span" : "div";
   if (isFormulaLine(text)) {
     const trimmed = text.trim();
     return (
-      <div
+      <Wrap
         className={block ? "katex-content katex-block-math" : "katex-content katex-inline-math"}
         dangerouslySetInnerHTML={{ __html: renderMathHtml(trimmed, block) }}
       />
@@ -33,11 +35,11 @@ export function KatexRenderer({ text, block = false }: KatexRendererProps) {
   const onlyText = segments.every((s) => s.type === "text");
 
   if (onlyText) {
-    return <div className="card-prose">{text}</div>;
+    return <Wrap className="card-prose">{text}</Wrap>;
   }
 
   return (
-    <div className="card-prose katex-inline">
+    <Wrap className="card-prose katex-inline">
       {segments.map((segment, index) => {
         if (segment.type === "text") {
           if (!segment.value) return null;
@@ -57,6 +59,6 @@ export function KatexRenderer({ text, block = false }: KatexRendererProps) {
           />
         );
       })}
-    </div>
+    </Wrap>
   );
 }

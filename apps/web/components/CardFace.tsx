@@ -40,7 +40,15 @@ function looksLikeHtml(text: string): boolean {
   return /<[a-z][\s\S]*>/i.test(text) || /data:image\//i.test(text);
 }
 
-export function CardFace({ text, block = false }: { text: string; block?: boolean }) {
+export function CardFace({
+  text,
+  block = false,
+  inline = false,
+}: {
+  text: string;
+  block?: boolean;
+  inline?: boolean;
+}) {
   const html = useMemo(() => {
     if (!looksLikeHtml(text)) return null;
     return DOMPurify.sanitize(text, {
@@ -51,8 +59,9 @@ export function CardFace({ text, block = false }: { text: string; block?: boolea
   }, [text]);
 
   if (html) {
-    return <div className="card-html" dangerouslySetInnerHTML={{ __html: html }} />;
+    const Wrap = inline ? "span" : "div";
+    return <Wrap className="card-html" dangerouslySetInnerHTML={{ __html: html }} />;
   }
 
-  return <KatexRenderer text={text} block={block} />;
+  return <KatexRenderer text={text} block={block} inline={inline} />;
 }

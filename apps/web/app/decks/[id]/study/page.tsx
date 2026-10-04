@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { BlankedFace } from "@/components/BlankedFace";
 import { CardFace } from "@/components/CardFace";
 import { FitCardBody } from "@/components/FitCardBody";
 import { MultipleChoiceStudy } from "@/components/MultipleChoiceStudy";
@@ -242,18 +243,30 @@ export default function StudyPage() {
             onReveal={() => setRevealed(true)}
           />
         ) : (
-          <button
-            type="button"
+          <div
             className="card flashcard study-card"
-            onClick={() => !isTypeIn && setRevealed(true)}
-            disabled={revealed && !isTypeIn}
+            role="button"
+            tabIndex={revealed && !isTypeIn ? -1 : 0}
+            onClick={() => {
+              if (!isTypeIn && !revealed) setRevealed(true);
+            }}
+            onKeyDown={(e) => {
+              if (isTypeIn || revealed) return;
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setRevealed(true);
+              }
+            }}
           >
             {studyRender?.modelCss ? <style>{studyRender.modelCss}</style> : null}
             <p className="flashcard-label">{revealed ? "Answer" : "Prompt"}</p>
             <FitCardBody contentKey={`${current.cardId}:${revealed ? "a" : "p"}:${faceText}`}>
               {isTypeIn && !revealed ? (
                 <div className="stack">
-                  <CardFace text={studyRender!.frontHtml.replace(/<input[^>]*>/gi, "")} />
+                  <BlankedFace
+                    text={studyRender!.frontHtml.replace(/<input[^>]*>/gi, "")}
+                    revealed={revealed}
+                  />
                   <input
                     className="input kiri-type-in-input"
                     value={typeInValue}
@@ -263,7 +276,7 @@ export default function StudyPage() {
                   />
                 </div>
               ) : (
-                <CardFace text={faceText} />
+                <BlankedFace text={faceText} revealed={revealed} />
               )}
             </FitCardBody>
             {!revealed && !isTypeIn && (
@@ -283,7 +296,7 @@ export default function StudyPage() {
                 </button>
               </p>
             )}
-          </button>
+          </div>
         )}
       </div>
 

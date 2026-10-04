@@ -15,7 +15,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "tsc --noEmit",
-    "test": "tsx --test src/templates.test.ts src/generate.test.ts src/multiple-choice.test.ts"
+    "test": "tsx --test src/templates.test.ts src/generate.test.ts src/multiple-choice.test.ts src/blanks.test.ts"
   },
   "devDependencies": {
     "tsx": "^4.19.4",

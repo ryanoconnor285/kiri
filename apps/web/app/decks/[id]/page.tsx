@@ -10,6 +10,8 @@ import {
   deleteCardConfirmMessage,
   deleteDeckConfirmMessage,
 } from "@/lib/deck-tree";
+import { parenthesesToBlanks } from "@kiri/card-templates";
+import { BlankedFace } from "@/components/BlankedFace";
 import { CardFace } from "@/components/CardFace";
 import { FitCardBody } from "@/components/FitCardBody";
 
@@ -355,7 +357,8 @@ export default function DeckDetailPage() {
         <div className="card stack" style={{ marginBottom: "1rem" }}>
           <p className="muted" style={{ margin: 0 }}>
             Add cards one at a time to <strong>{deck.title}</strong>. KaTeX math is supported
-            (e.g. <code>$E = mc^2$</code>).
+            (e.g. <code>$E = mc^2$</code>). Hide words with <code>[[increases]]</code>, or write{" "}
+            <code>Y (increases) as X (decreases)</code> and tap Block parentheses.
           </p>
           <div className="stack">
             <label className="stack" style={{ gap: "0.35rem" }}>
@@ -374,6 +377,13 @@ export default function DeckDetailPage() {
                   }
                 }}
               />
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setFrontText((t) => parenthesesToBlanks(t))}
+              >
+                Block parentheses
+              </button>
             </label>
             <label className="stack" style={{ gap: "0.35rem" }}>
               <span className="muted">Back (answer)</span>
@@ -396,7 +406,7 @@ export default function DeckDetailPage() {
             <div className="card flashcard flashcard-browse" style={{ cursor: "default" }}>
               <p className="flashcard-label">Preview</p>
               <FitCardBody contentKey={`preview:${frontText}:${backText}`}>
-                <CardFace text={frontText.trim() || "(empty front)"} />
+                <BlankedFace text={frontText.trim() || "(empty front)"} revealed={false} interactive />
               </FitCardBody>
               {backText.trim() && (
                 <>
@@ -438,17 +448,28 @@ export default function DeckDetailPage() {
             const showBack = flipped[card.id];
             return (
               <div key={card.id} className="stack" style={{ gap: "0.5rem" }}>
-                <button
-                  type="button"
+                <div
                   className="card flashcard flashcard-browse"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => toggleFlip(card.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleFlip(card.id);
+                    }
+                  }}
                 >
                   <p className="flashcard-label">{showBack ? "Back" : "Front"}</p>
                   <FitCardBody contentKey={`${card.id}:${showBack ? "b" : "f"}`}>
-                    <CardFace text={showBack ? card.backText : card.frontText} />
+                    <BlankedFace
+                      text={showBack ? card.backText : card.frontText}
+                      revealed={showBack}
+                      interactive={!showBack}
+                    />
                   </FitCardBody>
                   <p className="flashcard-hint">Tap to flip</p>
-                </button>
+                </div>
                 <button
                   type="button"
                   className="btn btn-danger"
