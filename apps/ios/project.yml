@@ -8,6 +8,11 @@ options:
       xcconfig: Config/Debug.xcconfig
     Staging:
       xcconfig: Config/Staging.xcconfig
+    ReleaseStaging:
+      xcconfig: Config/ReleaseStaging.xcconfig
+      buildSettings:
+        SWIFT_OPTIMIZATION_LEVEL: -O
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: STAGING
     Release:
       buildSettings:
         SWIFT_OPTIMIZATION_LEVEL: -O

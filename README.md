@@ -99,6 +99,8 @@ Alternatively, regenerate with [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 cd apps/ios && xcodegen generate
 ```
 
+**TestFlight (CI):** GitHub Actions uploads **ReleaseStaging** builds (staging API) via Fastlane. One-time Apple + secrets setup: [`docs/ios-testflight-ci.md`](docs/ios-testflight-ci.md). Trigger manually in Actions or push a tag `testflight/x.y.z`.
+
 ## Scripts
 
 | Command | Description |
@@ -196,4 +198,4 @@ This scaffold includes minimal working skeletons. Deferred for later phases:
 - Full bidirectional sync conflict resolution
 - Production LLM integration (stub normalizes chemical formulas)
 - Web notebook editor, OCR, PDF annotate, note→card — paged notebooks (iOS editor + web list) shipped
-- App Store / TestFlight configuration
+- Production App Store release lane (TestFlight CI is documented in [`docs/ios-testflight-ci.md`](docs/ios-testflight-ci.md))

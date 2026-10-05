@@ -26,6 +26,8 @@ Thumbs.db
 # iOS
 apps/ios/DerivedData/
 apps/ios/build/
+apps/ios/fastlane/report.xml
+apps/ios/fastlane/test_output/
 *.ipa
 *.dSYM.zip
 

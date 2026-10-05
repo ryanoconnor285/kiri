@@ -80,6 +80,7 @@
 		B20000010000000000000021 /* Staging.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Staging.xcconfig; sourceTree = "<group>"; };
 		B20000010000000000000022 /* MultipleChoiceShuffle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleChoiceShuffle.swift; sourceTree = "<group>"; };
 		B20000010000000000000023 /* MultipleChoiceStudyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipleChoiceStudyView.swift; sourceTree = "<group>"; };
+		B20000010000000000000024 /* ReleaseStaging.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ReleaseStaging.xcconfig; sourceTree = "<group>"; };
 		A30000010000000000000001 /* Kiri.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kiri.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -108,6 +109,7 @@
 			children = (
 				B20000010000000000000020 /* Debug.xcconfig */,
 				B20000010000000000000021 /* Staging.xcconfig */,
+				B20000010000000000000024 /* ReleaseStaging.xcconfig */,
 			);
 			path = Config;
 			sourceTree = "<group>";
@@ -354,6 +356,27 @@
 			};
 			name = Staging;
 		};
+		AA0000010000000000000007 /* ReleaseStaging */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B20000010000000000000024 /* ReleaseStaging.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = STAGING;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = ReleaseStaging;
+		};
 		AA0000010000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = B20000010000000000000020 /* Debug.xcconfig */;
@@ -431,6 +454,32 @@
 			};
 			name = Staging;
 		};
+		AA0000010000000000000008 /* ReleaseStaging */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B20000010000000000000024 /* ReleaseStaging.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Kiri/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kiri.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = ReleaseStaging;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -439,6 +488,7 @@
 			buildConfigurations = (
 				AA0000010000000000000001 /* Debug */,
 				AA0000010000000000000005 /* Staging */,
+				AA0000010000000000000007 /* ReleaseStaging */,
 				AA0000010000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -449,6 +499,7 @@
 			buildConfigurations = (
 				AA0000010000000000000003 /* Debug */,
 				AA0000010000000000000006 /* Staging */,
+				AA0000010000000000000008 /* ReleaseStaging */,
 				AA0000010000000000000004 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
