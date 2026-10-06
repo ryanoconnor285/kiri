@@ -58,7 +58,11 @@ platform :ios do
         api_key: api_key,
         git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"],
       )
-      profile_name = ENV.fetch("sigh_app.kiri.study_appstore", "match AppStore app.kiri.study")
+      profile_name = ENV.fetch("sigh_app.kiri.study_appstore_profile-name") do
+        mapping = Actions.lane_context[SharedValues::MATCH_PROVISIONING_PROFILE_MAPPING]
+        mapping&.fetch("app.kiri.study") ||
+          UI.user_error!("Missing App Store profile name after match")
+      end
     else
       import_manual_signing_material
       profile_name = @installed_profile_name || ENV.fetch("IOS_PROVISIONING_PROFILE_NAME")
@@ -71,17 +75,24 @@ platform :ios do
       xcodeproj: "Kiri.xcodeproj",
     )
 
+    # gym/build_app has no api_key option; match already installed cert + profile on CI.
+    escaped_profile = profile_name.gsub("'", "'\\''")
     build_app(
       scheme: "Kiri-Staging",
       configuration: "ReleaseStaging",
       export_method: "app-store",
-      xcargs: "DEVELOPMENT_TEAM=#{team} -allowProvisioningUpdates",
+      export_team_id: team,
+      xcargs: [
+        "DEVELOPMENT_TEAM=#{team}",
+        "CODE_SIGN_STYLE=Manual",
+        "PROVISIONING_PROFILE_SPECIFIER='#{escaped_profile}'",
+        "CODE_SIGN_IDENTITY=Apple Distribution",
+      ].join(" "),
       export_options: {
         provisioningProfiles: {
           "app.kiri.study" => profile_name,
         },
       },
-      api_key: api_key,
     )
 
     upload_to_testflight(
