@@ -13,6 +13,8 @@ The workflow file lives on the repo **default branch** (`main`). Use **Actions â
 
 Build numbers come from `github.run_number` (must increase every upload).
 
+CI runs on **`macos-26`** with **Xcode 26** (App Store Connect requires the iOS 26 SDK for uploads).
+
 ## One-time Apple setup
 
 1. [Apple Developer Program](https://developer.apple.com/programs/) membership.
