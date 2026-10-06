@@ -36,7 +36,7 @@
 		B1000001000000000000001A /* KiriTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001A /* KiriTheme.swift */; };
         B1000001000000000000001B /* PaperBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001B /* PaperBackgroundView.swift */; };
 		B1000001000000000000001C /* NotebookEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001C /* NotebookEditorView.swift */; };
-		B1000001000000000000001D /* DeckTreeHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001D /* DeckTreeHelpers.swift */; };
+		B10000010000000000000025 /* DeckTreeHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000025 /* DeckTreeHelpers.swift */; };
 		B1000001000000000000001E /* CardSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001E /* CardSearch.swift */; };
 		B1000001000000000000001F /* BrowseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000001000000000000001F /* BrowseView.swift */; };
 		B10000010000000000000022 /* MultipleChoiceShuffle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000022 /* MultipleChoiceShuffle.swift */; };
@@ -73,7 +73,7 @@
 		B2000001000000000000001A /* KiriTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KiriTheme.swift; sourceTree = "<group>"; };
 		B2000001000000000000001B /* PaperBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperBackgroundView.swift; sourceTree = "<group>"; };
 		B2000001000000000000001C /* NotebookEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotebookEditorView.swift; sourceTree = "<group>"; };
-		B2000001000000000000001D /* DeckTreeHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckTreeHelpers.swift; sourceTree = "<group>"; };
+		B20000010000000000000025 /* DeckTreeHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckTreeHelpers.swift; sourceTree = "<group>"; };
 		B2000001000000000000001E /* CardSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardSearch.swift; sourceTree = "<group>"; };
 		B2000001000000000000001F /* BrowseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowseView.swift; sourceTree = "<group>"; };
 		B20000010000000000000020 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
@@ -148,7 +148,7 @@
 				B20000010000000000000007 /* Repositories.swift */,
 				B20000010000000000000008 /* RecallQueue.swift */,
 				B20000010000000000000022 /* MultipleChoiceShuffle.swift */,
-				B2000001000000000000001D /* DeckTreeHelpers.swift */,
+				B20000010000000000000025 /* DeckTreeHelpers.swift */,
 				B2000001000000000000001E /* CardSearch.swift */,
 				B20000010000000000000009 /* ApkgImportService.swift */,
 				B20000010000000000000002 /* KeychainHelper.swift */,
@@ -267,7 +267,7 @@
 				B10000010000000000000006 /* GraphQLOperations.swift in Sources */,
 				B10000010000000000000007 /* Repositories.swift in Sources */,
 				B10000010000000000000008 /* RecallQueue.swift in Sources */,
-				B1000001000000000000001D /* DeckTreeHelpers.swift in Sources */,
+				B10000010000000000000025 /* DeckTreeHelpers.swift in Sources */,
 				B1000001000000000000001E /* CardSearch.swift in Sources */,
 				B10000010000000000000009 /* ApkgImportService.swift in Sources */,
 				B10000010000000000000002 /* KeychainHelper.swift in Sources */,
