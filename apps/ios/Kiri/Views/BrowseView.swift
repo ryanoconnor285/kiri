@@ -128,8 +128,8 @@ struct BrowseView: View {
                         Task { await saveEdits(card: card) }
                     }
                     .buttonStyle(.borderedProminent)
-                    KatexView(text: editFront)
-                    KatexView(text: editBack)
+                    KatexView(latex: editFront)
+                    KatexView(latex: editBack)
                 }
                 .padding()
             }
