@@ -82,11 +82,11 @@ platform :ios do
       configuration: "ReleaseStaging",
       export_method: "app-store",
       export_team_id: team,
+      codesigning_identity: "Apple Distribution",
       xcargs: [
         "DEVELOPMENT_TEAM=#{team}",
         "CODE_SIGN_STYLE=Manual",
         "PROVISIONING_PROFILE_SPECIFIER='#{escaped_profile}'",
-        "CODE_SIGN_IDENTITY=Apple Distribution",
       ].join(" "),
       export_options: {
         provisioningProfiles: {
