@@ -54,6 +54,8 @@ jobs:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          # Certs repo default is main; match may still store on master until branches are merged.
+          MATCH_GIT_BRANCH: ${{ secrets.MATCH_GIT_BRANCH != '' && secrets.MATCH_GIT_BRANCH || 'master' }}
           MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
           IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
           IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
