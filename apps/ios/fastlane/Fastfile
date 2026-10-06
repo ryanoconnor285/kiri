@@ -58,7 +58,7 @@ platform :ios do
         api_key: api_key,
         git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"],
       )
-      profile_name = ENV.fetch("sigh_com.kiri.app_appstore", "match AppStore com.kiri.app")
+      profile_name = ENV.fetch("sigh_app.kiri.study_appstore", "match AppStore app.kiri.study")
     else
       import_manual_signing_material
       profile_name = @installed_profile_name || ENV.fetch("IOS_PROVISIONING_PROFILE_NAME")
@@ -78,7 +78,7 @@ platform :ios do
       xcargs: "DEVELOPMENT_TEAM=#{team} -allowProvisioningUpdates",
       export_options: {
         provisioningProfiles: {
-          "com.kiri.app" => profile_name,
+          "app.kiri.study" => profile_name,
         },
       },
       api_key: api_key,

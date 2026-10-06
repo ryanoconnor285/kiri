@@ -14,7 +14,7 @@ Build numbers come from `github.run_number` (must increase every upload).
 ## One-time Apple setup
 
 1. [Apple Developer Program](https://developer.apple.com/programs/) membership.
-2. [App Store Connect](https://appstoreconnect.apple.com/) → create app with bundle ID **`com.kiri.app`**.
+2. [App Store Connect](https://appstoreconnect.apple.com/) → create app with bundle ID **`app.kiri.study`**.
 3. **Users and Access → Integrations → App Store Connect API** → create key with **App Manager** (or Admin). Download the `.p8` once.
 
 ## GitHub secrets (required)
@@ -55,7 +55,7 @@ Commit/push the generated certs repo. CI uses `match` **readonly**.
 
 ### Option B — manual p12 + profile
 
-Export **Apple Distribution** certificate as `.p12` and download **App Store** provisioning profile for `com.kiri.app`.
+Export **Apple Distribution** certificate as `.p12` and download **App Store** provisioning profile for `app.kiri.study`.
 
 | Secret | Value |
 |--------|--------|

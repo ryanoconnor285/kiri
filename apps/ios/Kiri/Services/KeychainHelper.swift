@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 enum KeychainHelper {
-    private static let service = "com.kiri.app"
+    private static let service = "app.kiri.study"
     private static let account = "auth-token"
 
     static func saveToken(_ token: String) {
